@@ -55,4 +55,4 @@ freeline/
 freeline_project_description.json
 
 # Keys
-**/*/res/values/keys.xml
+"**/*/res/values/keys.xml"
