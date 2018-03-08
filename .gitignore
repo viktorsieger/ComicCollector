@@ -54,7 +54,5 @@ freeline.py
 freeline/
 freeline_project_description.json
 
-#TEST2
-
 # Keys
 **/res/values/keys.xml
