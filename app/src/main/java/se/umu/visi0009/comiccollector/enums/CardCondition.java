@@ -1,4 +1,4 @@
-package se.umu.visi0009.comiccollector;
+package se.umu.visi0009.comiccollector.enums;
 
 public enum CardCondition {
     PRISTINE,

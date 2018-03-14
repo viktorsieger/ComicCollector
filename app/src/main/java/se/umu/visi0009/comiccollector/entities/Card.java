@@ -1,4 +1,4 @@
-package se.umu.visi0009.comiccollector;
+package se.umu.visi0009.comiccollector.entities;
 
 import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Entity;
@@ -7,6 +7,8 @@ import android.arch.persistence.room.Index;
 import android.arch.persistence.room.PrimaryKey;
 
 import java.util.Date;
+
+import se.umu.visi0009.comiccollector.enums.CardCondition;
 
 @Entity(tableName = "cards",
         indices = {@Index("name"), @Index(value = {"id", "player_id", "character_id", "condition", "date_found"})},

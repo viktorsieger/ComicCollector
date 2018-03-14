@@ -1,4 +1,4 @@
-package se.umu.visi0009.comiccollector;
+package se.umu.visi0009.comiccollector.entities;
 
 import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Entity;
