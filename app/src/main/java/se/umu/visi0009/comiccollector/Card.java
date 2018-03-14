@@ -16,21 +16,61 @@ public class Card {
 
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "id")
-    public int id;
+    private int id;
 
     @ColumnInfo(name = "player_id")
-    public int playerID;
+    private int playerID;
 
     @ColumnInfo(name = "character_id")
-    public int characterID;
+    private int characterID;
 
     @ColumnInfo(name = "condition")
-    public CardCondition condition;
+    private CardCondition condition;
 
     @ColumnInfo(name = "date_found")
-    public Date dateFound;
+    private Date dateFound;
 
     public Card() {
 
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public int getPlayerID() {
+        return playerID;
+    }
+
+    public void setPlayerID(int playerID) {
+        this.playerID = playerID;
+    }
+
+    public int getCharacterID() {
+        return characterID;
+    }
+
+    public void setCharacterID(int characterID) {
+        this.characterID = characterID;
+    }
+
+    public CardCondition getCondition() {
+        return condition;
+    }
+
+    public void setCondition(CardCondition condition) {
+        this.condition = condition;
+    }
+
+    public Date getDateFound() {
+        return dateFound;
+    }
+
+    public void setDateFound(Date dateFound) {
+        this.dateFound = dateFound;
     }
 }

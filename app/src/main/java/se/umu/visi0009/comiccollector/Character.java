@@ -15,22 +15,22 @@ public class Character {
 
     @PrimaryKey
     @ColumnInfo(name = "id")
-    public int id;
+    private int id;
 
     @ColumnInfo(name = "name")
-    public String name;
+    private String name;
 
     @ColumnInfo(name = "description")
-    public String description;
+    private String description;
 
     @ColumnInfo(name = "thumbnail_path")
-    public String thumbnailPath;
+    private String thumbnailPath;
 
     @ColumnInfo(name = "comics")
-    public List<String> comics;
+    private List<String> comics;
 
     @ColumnInfo(name = "last_updated")
-    public Date lastUpdated;
+    private Date lastUpdated;
 
     @Ignore
     public Character(int id, String name, String description, String thumbnailPath, List<String> comics, Date lastUpdated) {
@@ -39,6 +39,54 @@ public class Character {
         this.description = description;
         this.thumbnailPath = thumbnailPath;
         this.comics = comics;
+        this.lastUpdated = lastUpdated;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getThumbnailPath() {
+        return thumbnailPath;
+    }
+
+    public void setThumbnailPath(String thumbnailPath) {
+        this.thumbnailPath = thumbnailPath;
+    }
+
+    public List<String> getComics() {
+        return comics;
+    }
+
+    public void setComics(List<String> comics) {
+        this.comics = comics;
+    }
+
+    public Date getLastUpdated() {
+        return lastUpdated;
+    }
+
+    public void setLastUpdated(Date lastUpdated) {
         this.lastUpdated = lastUpdated;
     }
 }
