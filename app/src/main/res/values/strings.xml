@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">ComicCollector</string>
+    <string name="app_version">1.0</string>
+    <string name="app_description">ComicCollector is a android game were the user collects cards depicting comic characters.</string>
 </resources>
