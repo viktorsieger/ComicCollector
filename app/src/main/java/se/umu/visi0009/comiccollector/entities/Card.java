@@ -11,7 +11,7 @@ import java.util.Date;
 import se.umu.visi0009.comiccollector.enums.CardCondition;
 
 @Entity(tableName = "cards",
-        indices = {@Index("name"), @Index(value = {"id", "player_id", "character_id", "condition", "date_found"})},
+        indices = {@Index(value = {"player_id", "id"}), @Index(value = {"character_id", "id"})},
         foreignKeys = {@ForeignKey(entity = Player.class, parentColumns = "id", childColumns = "player_id", onDelete = ForeignKey.CASCADE),
                        @ForeignKey(entity = Character.class, parentColumns = "id", childColumns = "character_id")})
 public class Card {

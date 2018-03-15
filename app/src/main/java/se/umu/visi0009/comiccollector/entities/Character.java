@@ -6,11 +6,11 @@ import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.Index;
 import android.arch.persistence.room.PrimaryKey;
 
+import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 @Entity(tableName = "characters",
-        indices = {@Index("name"), @Index(value = {"id", "name", "description", "thumbnail_path", "comics", "last_updated"})})
+        indices = {@Index(value = {"id"})})
 public class Character {
 
     @PrimaryKey
@@ -27,13 +27,17 @@ public class Character {
     private String thumbnailPath;
 
     @ColumnInfo(name = "comics")
-    private List<String> comics;
+    private ArrayList<String> comics;
 
     @ColumnInfo(name = "last_updated")
     private Date lastUpdated;
 
+    public Character() {
+
+    }
+
     @Ignore
-    public Character(int id, String name, String description, String thumbnailPath, List<String> comics, Date lastUpdated) {
+    public Character(int id, String name, String description, String thumbnailPath, ArrayList<String> comics, Date lastUpdated) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -74,11 +78,11 @@ public class Character {
         this.thumbnailPath = thumbnailPath;
     }
 
-    public List<String> getComics() {
+    public ArrayList<String> getComics() {
         return comics;
     }
 
-    public void setComics(List<String> comics) {
+    public void setComics(ArrayList<String> comics) {
         this.comics = comics;
     }
 

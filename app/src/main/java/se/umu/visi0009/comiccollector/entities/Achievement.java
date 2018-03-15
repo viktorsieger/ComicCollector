@@ -11,7 +11,7 @@ import java.util.Date;
 import se.umu.visi0009.comiccollector.enums.AchievementDifficulty;
 
 @Entity(tableName = "achievements",
-        indices = {@Index("name"), @Index(value = {"id", "player_id", "name", "description", "difficulty", "date_completed"})},
+        indices = {@Index(value = {"player_id", "id"})},
         foreignKeys = @ForeignKey(entity = Player.class, parentColumns = "id", childColumns = "player_id"))
 public class Achievement {
 

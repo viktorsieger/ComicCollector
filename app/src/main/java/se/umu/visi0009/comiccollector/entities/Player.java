@@ -6,7 +6,7 @@ import android.arch.persistence.room.Index;
 import android.arch.persistence.room.PrimaryKey;
 
 @Entity(tableName = "players",
-        indices = {@Index("name"), @Index(value = {"id", "travel_distance_in_kilometers"})})
+        indices = {@Index(value = {"id"})})
 public class Player {
 
     @PrimaryKey(autoGenerate = true)
