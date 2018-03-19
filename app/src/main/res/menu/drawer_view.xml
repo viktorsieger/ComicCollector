@@ -1,31 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <group android:checkableBehavior="single">
+    <group
+        android:checkableBehavior="single"
+        android:id="@+id/drawer_section_top">
+
         <item
-            android:id="@+id/nav_map"
             android:icon="@drawable/ic_menu_map"
+            android:id="@+id/nav_map"
             android:title="@string/menu_map" />
         <item
-            android:id="@+id/nav_collection"
             android:icon="@drawable/ic_menu_collection"
+            android:id="@+id/nav_collection"
             android:title="@string/menu_collection" />
         <item
-            android:id="@+id/nav_achievements"
             android:icon="@drawable/ic_menu_achievements"
+            android:id="@+id/nav_achievements"
             android:title="@string/menu_achievements" />
         <item
-            android:id="@+id/nav_stats"
             android:icon="@drawable/ic_menu_stats"
+            android:id="@+id/nav_stats"
             android:title="@string/menu_stats" />
     </group>
-    <group android:checkableBehavior="single">
+    <group
+        android:checkableBehavior="single"
+        android:id="@+id/drawer_section_bottom">
+
         <item
-            android:id="@+id/nav_settings"
             android:icon="@drawable/ic_menu_settings"
+            android:id="@+id/nav_settings"
             android:title="@string/menu_settings" />
         <item
-            android:id="@+id/nav_about"
             android:icon="@drawable/ic_menu_info"
+            android:id="@+id/nav_about"
             android:title="@string/menu_about" />
     </group>
 </menu>
