@@ -9,12 +9,10 @@
         android:id="@+id/map"
         android:layout_above="@id/marvel_banner"
         android:layout_alignParentTop="true"
+        android:layout_height="wrap_content"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
         android:name="com.google.android.gms.maps.SupportMapFragment"
-        tools:context="com.example.mapwithmarker.MapsMarkerActivity"
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools" />
+        xmlns:android="http://schemas.android.com/apk/res/android" />
 
     <TextView
         android:id="@+id/marvel_banner"
