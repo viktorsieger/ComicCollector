@@ -13,4 +13,6 @@
     <string name="menu_header_text">ComicCollector</string>
 
     <string name="marvel_banner_text">Marvel FIXA</string>
+
+    <string name="permission_denied_notification">Location permission was denied</string>
 </resources>

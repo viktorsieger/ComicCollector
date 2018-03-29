@@ -1,6 +1,7 @@
 package se.umu.visi0009.comiccollector.fragments;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
@@ -23,6 +24,7 @@ import se.umu.visi0009.comiccollector.R;
 
 public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnMyLocationButtonClickListener {
 
+    private Context context;
     private GoogleMap mGoogleMap;
     private Location mLastKnownLocation;
     private boolean mLocationPermissionGranted;
@@ -30,14 +32,20 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     private FusedLocationProviderClient mFusedLocationProviderClient;
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(getActivity());
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        this.context = context;
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context);
+    }
+
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_map, container, false);
 
         ((SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map)).getMapAsync(this);
@@ -58,7 +66,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     }
 
     private void checkLocationPermission() {
-        if (ContextCompat.checkSelfPermission(getActivity().getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             mLocationPermissionGranted = true;
         }
         else {
@@ -75,8 +83,13 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
                 if ((grantResults.length > 0) && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
                     mLocationPermissionGranted = true;
                 }
+                else {
+                    Toast.makeText(context, R.string.permission_denied_notification, Toast.LENGTH_SHORT).show();
+                }
             }
         }
+
+        updateLocationUI();
     }
 
     private void updateLocationUI() {
@@ -103,7 +116,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
     @Override
     public boolean onMyLocationButtonClick() {
-        Toast.makeText(getActivity().getApplicationContext(), "Button clicked!", Toast.LENGTH_SHORT).show();
+        Toast.makeText(context, "Button clicked!", Toast.LENGTH_SHORT).show();
         return false;
     }
 
