@@ -14,5 +14,6 @@
 
     <string name="marvel_banner_text">Marvel FIXA</string>
 
-    <string name="permission_denied_notification">Location permission was denied</string>
+    <string name="error_permission_denied">Location permission was denied</string>
+    <string name="error_location">Could not get location</string>
 </resources>
