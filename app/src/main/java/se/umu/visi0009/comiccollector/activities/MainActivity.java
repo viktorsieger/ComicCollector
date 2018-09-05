@@ -1,5 +1,6 @@
 package se.umu.visi0009.comiccollector.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
@@ -158,6 +159,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
         else {
             super.onBackPressed();
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        Fragment currentFragment;
+
+        currentFragment = mFragmentManager.findFragmentById(R.id.content_frame);
+
+        if(currentFragment != null) {
+            currentFragment.onActivityResult(requestCode, resultCode, data);
         }
     }
 }
