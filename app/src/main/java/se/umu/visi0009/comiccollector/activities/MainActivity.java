@@ -23,17 +23,20 @@ import se.umu.visi0009.comiccollector.fragments.StatsFragment;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, FragmentManager.OnBackStackChangedListener {
 
+    private static final String KEY_MAP_FRAGMENT_ADDED = "mMapFragmentAdded";
+
     private DrawerLayout mDrawerLayout;
     private FragmentManager mFragmentManager;
     private NavigationView mNavigationView;
     private Toolbar mToolbar;
+    private boolean mMapFragmentAdded = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         ActionBar actionBar;
 
         super.onCreate(savedInstanceState);
+        updateValuesFromBundle(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         mDrawerLayout = findViewById(R.id.drawer_layout);
@@ -50,8 +53,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         mFragmentManager = getSupportFragmentManager();
-        mFragmentManager.beginTransaction().add(R.id.content_frame, new MapFragment()).commit();
         mFragmentManager.addOnBackStackChangedListener(this);
+
+        if(!mMapFragmentAdded) {
+            mFragmentManager.beginTransaction().add(R.id.content_frame, new MapFragment()).commit();
+            mMapFragmentAdded = true;
+        }
 
         mNavigationView.setNavigationItemSelectedListener(this);
         mNavigationView.getMenu().getItem(0).setChecked(true);
@@ -172,6 +179,22 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         if(currentFragment != null) {
             currentFragment.onActivityResult(requestCode, resultCode, data);
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putBoolean(KEY_MAP_FRAGMENT_ADDED, mMapFragmentAdded);
+        super.onSaveInstanceState(outState);
+    }
+
+    private void updateValuesFromBundle(Bundle savedInstanceState) {
+        if(savedInstanceState == null) {
+            return;
+        }
+
+        if(savedInstanceState.containsKey(KEY_MAP_FRAGMENT_ADDED)) {
+            mMapFragmentAdded = savedInstanceState.getBoolean(KEY_MAP_FRAGMENT_ADDED);
         }
     }
 }

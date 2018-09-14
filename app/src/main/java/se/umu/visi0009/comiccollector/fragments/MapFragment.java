@@ -22,6 +22,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.GeofencingClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
@@ -33,9 +34,13 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+
+import java.util.ArrayList;
+import java.util.Random;
 
 import se.umu.visi0009.comiccollector.R;
 
@@ -46,7 +51,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private static final int FAILURE_ZOOM = 4;
     private static final LatLng FAILURE_LOCATION = new LatLng(62.3875, 16.325556);
     private static final int DEFAULT_ZOOM = 17;
-    private static final String KEY_LOCATION_PERMISSION_ALREADY_REQUESTED = "mLocationPermissionAlreadyRequested";
     private static final String KEY_LOCATION_PERMISSION_GRANTED = "mLocationPermissionGranted";
     private static final String KEY_LOCATION_SETTINGS_ENABLED = "mLocationSettingEnabled";
 
@@ -54,13 +58,15 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private Activity mActivity;
     private FusedLocationProviderClient mFusedLocationProviderClient;
     private GoogleMap mGoogleMap;
-    private Location mLastKnownLocation;
     private LocationRequest mLocationRequest;
     private boolean mLocationPermissionGranted = false;
-    private boolean mLocationPermissionAlreadyRequested = false;
     private boolean mLocationSettingEnabled = false;
     private boolean mIsZoomedIn = false;
-    private boolean mRequestingLocationUpdates;
+    private LocationCallback mLocationCallback;
+    private Location mLastKnownLocation;
+    private GeofencingClient mGeofencingClient;
+    private boolean isGameSetUp = false;
+    private ArrayList<LatLng> mCardsLocations;
 
     @Override
     public void onAttach(Context context) {
@@ -73,6 +79,20 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         super.onCreate(savedInstanceState);
         updateValuesFromBundle(savedInstanceState);
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(mContext);
+        mGeofencingClient = LocationServices.getGeofencingClient(mContext);
+
+        mLocationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                if(locationResult != null) {
+                    onLocationChanged(locationResult.getLastLocation());
+                }
+                else {
+                    Toast.makeText(mContext, R.string.error_location, Toast.LENGTH_SHORT).show(); // REMOVE?
+                    mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(FAILURE_LOCATION, FAILURE_ZOOM)); // REMOVE?
+                }
+            }
+        };
     }
 
     @Override
@@ -85,7 +105,13 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        this.mActivity = getActivity();
+        mActivity = getActivity();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        stopLocationUpdates();
     }
 
     @Override
@@ -106,10 +132,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     }
 
     private void checkLocationPermission() {
-        if(mLocationPermissionAlreadyRequested) {
-            return;
-        }
-
         if (ContextCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             mLocationPermissionGranted = true;
             locationPermissionGrantedRoutine();
@@ -119,12 +141,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 builder.setMessage("Location permission is needed to pinpoint your position. Your position is used to set the gaming environment.").setCancelable(false).setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        mLocationPermissionAlreadyRequested = true;
                         requestPermissions(new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
                     }
                 }).show();
             } else {
-                mLocationPermissionAlreadyRequested = true;
                 requestPermissions(new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
             }
         }
@@ -210,18 +230,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
     private void startLocationUpdates() {
         try {
-            mFusedLocationProviderClient.requestLocationUpdates(mLocationRequest, new LocationCallback() {
-                @Override
-                public void onLocationResult(LocationResult locationResult) {
-                    if(locationResult != null) {
-                        onLocationChanged(locationResult.getLastLocation());
-                    }
-                    else {
-                        Toast.makeText(mContext, R.string.error_location, Toast.LENGTH_SHORT).show(); // REMOVE?
-                        mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(FAILURE_LOCATION, FAILURE_ZOOM)); // REMOVE?
-                    }
-                }
-            }, null);
+            mFusedLocationProviderClient.requestLocationUpdates(mLocationRequest, mLocationCallback, null);
         }
         catch (SecurityException se) {
             Log.e("Exception %s", se.getMessage());
@@ -231,10 +240,104 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private void onLocationChanged(Location location) {
         Toast.makeText(mContext, "(" + location.getLatitude() + ", " + location.getLongitude() + ")", Toast.LENGTH_SHORT).show();
 
+        mLastKnownLocation = location;
+
+        if(!isGameSetUp) {
+            mCardsLocations = generateCardsLocations(location);
+            addMarkers(mCardsLocations);
+            isGameSetUp = true;
+        }
+
         if(!mIsZoomedIn) {
             mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), DEFAULT_ZOOM));
             mIsZoomedIn = true;
         }
+    }
+
+    private ArrayList<LatLng> generateCardsLocations(Location userLocation) {
+        int i, j;
+        boolean isNewLocationFound;
+        LatLng newLocation;
+        ArrayList<LatLng> cardsLocations = new ArrayList<>();
+
+        for(i = 0; i < 90; i++) {
+            isNewLocationFound = false;
+
+            do {
+                newLocation = generateLocation(userLocation.getLatitude(), userLocation.getLongitude(), 10000);
+
+                if(distanceBetweenPoints(new LatLng(userLocation.getLatitude(), userLocation.getLongitude()), newLocation) >= 300) {
+                    if(cardsLocations.isEmpty()) {
+                        isNewLocationFound = true;
+                    }
+                    else {
+                        for(j = 0; j < cardsLocations.size(); j++) {
+                            if(distanceBetweenPoints(newLocation, cardsLocations.get(j)) < 300) {
+                                isNewLocationFound = false;
+                                break;
+                            }
+                            else {
+                                isNewLocationFound = true;
+                            }
+                        }
+                    }
+                }
+            } while (!isNewLocationFound);
+
+            cardsLocations.add(newLocation);
+        }
+
+        return cardsLocations;
+    }
+
+    //Referera till författaren!
+    private LatLng generateLocation(double originLatitudeInDegrees, double originLongitudeInDegrees, double radiusInMeters) {
+        Random rand;
+        double radiusInDegrees, u, v, w, t, x, y, new_x, foundLatitude, foundLongitude;
+
+        rand = new Random();
+
+        radiusInDegrees = radiusInMeters / 111000f;
+
+        u = rand.nextDouble();
+        v = rand.nextDouble();
+        w = radiusInDegrees * Math.sqrt(u);
+        t = 2 * Math.PI * v;
+        x = w * Math.cos(t);
+        y = w * Math.sin(t);
+
+        new_x = x / Math.cos(originLatitudeInDegrees);
+
+        foundLatitude = y + originLatitudeInDegrees;
+        foundLongitude = new_x + originLongitudeInDegrees;
+
+        return new LatLng(foundLatitude, foundLongitude);
+    }
+
+    //Referera till författaren!
+    //https://rosettacode.org/wiki/Haversine_formula
+    private double distanceBetweenPoints(LatLng point1, LatLng point2) {
+        double R = 6372.8;
+
+        double dLat = Math.toRadians(point2.latitude - point1.latitude);
+        double dLon = Math.toRadians(point2.longitude - point1.longitude);
+        double lat1 = Math.toRadians(point1.latitude);
+        double lat2 = Math.toRadians(point2.latitude);
+
+        double a = Math.pow(Math.sin(dLat / 2), 2) + Math.pow(Math.sin(dLon / 2), 2) * Math.cos(lat1) * Math.cos(lat2);
+        double c = 2 * Math.asin(Math.sqrt(a));
+
+        return (R * c) * 1000;
+    }
+
+    private void addMarkers(ArrayList<LatLng> locations) {
+        for(int i = 0; i < locations.size(); i++) {
+            mGoogleMap.addMarker(new MarkerOptions().position(locations.get(i)));
+        }
+    }
+
+    private void stopLocationUpdates() {
+        mFusedLocationProviderClient.removeLocationUpdates(mLocationCallback);
     }
 
     protected void createLocationRequest() {
@@ -255,7 +358,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     }
 
     private void updateLocationUI() {
-
         if (mGoogleMap == null) {
             return;
         }
@@ -276,7 +378,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
-        outState.putBoolean(KEY_LOCATION_PERMISSION_ALREADY_REQUESTED, mLocationPermissionAlreadyRequested);
         outState.putBoolean(KEY_LOCATION_PERMISSION_GRANTED, mLocationPermissionGranted);
         outState.putBoolean(KEY_LOCATION_SETTINGS_ENABLED, mLocationSettingEnabled);
         super.onSaveInstanceState(outState);
@@ -293,10 +394,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
         if(savedInstanceState.containsKey(KEY_LOCATION_SETTINGS_ENABLED)) {
             mLocationSettingEnabled = savedInstanceState.getBoolean(KEY_LOCATION_SETTINGS_ENABLED);
-        }
-
-        if(savedInstanceState.containsKey(KEY_LOCATION_PERMISSION_ALREADY_REQUESTED)) {
-            mLocationPermissionAlreadyRequested = savedInstanceState.getBoolean(KEY_LOCATION_PERMISSION_ALREADY_REQUESTED);
         }
     }
 }
