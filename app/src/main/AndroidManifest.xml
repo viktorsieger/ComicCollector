@@ -31,6 +31,11 @@
             </intent-filter>
         </activity>
 
+        <service
+            android:description="@string/geofence_service_description"
+            android:exported="false"
+            android:name=".entities.GeofenceTransitionsIntentService" />
+
     </application>
 
 </manifest>

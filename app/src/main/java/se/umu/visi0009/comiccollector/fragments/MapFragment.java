@@ -3,9 +3,12 @@ package se.umu.visi0009.comiccollector.fragments;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -14,15 +17,19 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingClient;
+import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
@@ -39,10 +46,16 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
-import java.util.ArrayList;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.HashMap;
 import java.util.Random;
 
 import se.umu.visi0009.comiccollector.R;
+import se.umu.visi0009.comiccollector.entities.GeofenceInfo;
+import se.umu.visi0009.comiccollector.entities.GeofenceTransitionsIntentService;
 
 public class MapFragment extends Fragment implements OnMapReadyCallback {
 
@@ -50,9 +63,13 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private static final int REQUEST_CHECK_SETTINGS = 2;
     private static final int FAILURE_ZOOM = 4;
     private static final LatLng FAILURE_LOCATION = new LatLng(62.3875, 16.325556);
-    private static final int DEFAULT_ZOOM = 17;
+    private static final int DEFAULT_ZOOM = 14;
     private static final String KEY_LOCATION_PERMISSION_GRANTED = "mLocationPermissionGranted";
     private static final String KEY_LOCATION_SETTINGS_ENABLED = "mLocationSettingEnabled";
+    private static final double GEOFENCES_MAX_DISTANCE_FROM_USER = 10000;
+    private static final double GEOFENCE_RADIUS = 100;
+    private static final int NUMBER_OF_GEOFENCES = 90;
+    private static final String FILENAME_GEOFENCE_INFOS = "currentGeofenceInfos";
 
     private Context mContext;
     private Activity mActivity;
@@ -63,10 +80,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private boolean mLocationSettingEnabled = false;
     private boolean mIsZoomedIn = false;
     private LocationCallback mLocationCallback;
-    private Location mLastKnownLocation;
     private GeofencingClient mGeofencingClient;
-    private boolean isGameSetUp = false;
-    private ArrayList<LatLng> mCardsLocations;
+    private boolean mGeofenceInfosExists;
+    private boolean mAreGeofencesAdded = false;
+    private PendingIntent mGeofencePendingIntent;
+    private HashMap<String, GeofenceInfo> mGeofenceInfos = new HashMap<>();
 
     @Override
     public void onAttach(Context context) {
@@ -78,8 +96,24 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         updateValuesFromBundle(savedInstanceState);
+
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(mContext);
         mGeofencingClient = LocationServices.getGeofencingClient(mContext);
+        mGeofencePendingIntent = null;
+
+        LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(mContext);
+        GeofenceReceiver geofenceReceiver = new GeofenceReceiver(this);
+        lbm.registerReceiver(geofenceReceiver, new IntentFilter("geofenceIntentFilter"));
+
+        Log.d("TEST", "isFileInPersistentStorage " + isFileInPersistentStorage(FILENAME_GEOFENCE_INFOS));
+
+        if(isFileInPersistentStorage(FILENAME_GEOFENCE_INFOS)) {
+            readGeofenceInfosFromPersistentStorage();
+            mGeofenceInfosExists = true;
+        }
+        else {
+            mGeofenceInfosExists = false;
+        }
 
         mLocationCallback = new LocationCallback() {
             @Override
@@ -111,7 +145,16 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     @Override
     public void onPause() {
         super.onPause();
+
         stopLocationUpdates();
+
+        if(mAreGeofencesAdded) {
+            removeGeofences();
+        }
+
+        if(mGeofenceInfosExists) {
+            writeGeofenceInfosToPersistentStorage();
+        }
     }
 
     @Override
@@ -238,14 +281,22 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     }
 
     private void onLocationChanged(Location location) {
-        Toast.makeText(mContext, "(" + location.getLatitude() + ", " + location.getLongitude() + ")", Toast.LENGTH_SHORT).show();
 
-        mLastKnownLocation = location;
+        if(!mGeofenceInfosExists) {
+            for(int i = 0; i < NUMBER_OF_GEOFENCES; i++) {
+                addGeofenceInfo(location);
+            }
 
-        if(!isGameSetUp) {
-            mCardsLocations = generateCardsLocations(location);
-            addMarkers(mCardsLocations);
-            isGameSetUp = true;
+            mGeofenceInfosExists = true;
+        }
+
+        if(!mAreGeofencesAdded) {
+            if(!mGeofenceInfos.isEmpty()) {
+                addMarkers();
+                addGeofences();
+            }
+
+            mAreGeofencesAdded = true;
         }
 
         if(!mIsZoomedIn) {
@@ -254,48 +305,61 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 
-    private ArrayList<LatLng> generateCardsLocations(Location userLocation) {
-        int i, j;
+    private void addGeofenceInfo(Location userLocation) {
+
         boolean isNewLocationFound;
-        LatLng newLocation;
-        ArrayList<LatLng> cardsLocations = new ArrayList<>();
+        Location newLocation;
+        Location tempLocation;
+        GeofenceInfo newGeofenceInfo;
+        String key;
 
-        for(i = 0; i < 90; i++) {
-            isNewLocationFound = false;
+        isNewLocationFound = false;
+        tempLocation = new Location("");
 
-            do {
-                newLocation = generateLocation(userLocation.getLatitude(), userLocation.getLongitude(), 10000);
+        do {
+            newLocation = generateLocation(userLocation, GEOFENCES_MAX_DISTANCE_FROM_USER);
 
-                if(distanceBetweenPoints(new LatLng(userLocation.getLatitude(), userLocation.getLongitude()), newLocation) >= 300) {
-                    if(cardsLocations.isEmpty()) {
-                        isNewLocationFound = true;
-                    }
-                    else {
-                        for(j = 0; j < cardsLocations.size(); j++) {
-                            if(distanceBetweenPoints(newLocation, cardsLocations.get(j)) < 300) {
-                                isNewLocationFound = false;
-                                break;
-                            }
-                            else {
-                                isNewLocationFound = true;
-                            }
+            if(userLocation.distanceTo(newLocation) >= (3 * GEOFENCE_RADIUS)) {
+                if(mGeofenceInfos.isEmpty()) {
+                    isNewLocationFound = true;
+                }
+                else {
+                    for(GeofenceInfo geofenceInfo : mGeofenceInfos.values()) {
+                        tempLocation.setLatitude(geofenceInfo.getLatitude());
+                        tempLocation.setLongitude(geofenceInfo.getLongitude());
+
+                        if(newLocation.distanceTo(tempLocation) >= (3 * GEOFENCE_RADIUS)) {
+                            isNewLocationFound = true;
+                        }
+                        else {
+                            isNewLocationFound = false;
+                            break;
                         }
                     }
                 }
-            } while (!isNewLocationFound);
+            }
+        } while (!isNewLocationFound);
 
-            cardsLocations.add(newLocation);
-        }
+        key = findUniqueKey();
 
-        return cardsLocations;
+        newGeofenceInfo = new GeofenceInfo(key,
+                newLocation.getLatitude(),
+                newLocation.getLongitude(),
+                (float)GEOFENCE_RADIUS,
+                Geofence.NEVER_EXPIRE,
+                Geofence.GEOFENCE_TRANSITION_ENTER);
+
+        mGeofenceInfos.put(key, newGeofenceInfo);
     }
 
-    //Referera till författaren!
-    private LatLng generateLocation(double originLatitudeInDegrees, double originLongitudeInDegrees, double radiusInMeters) {
+    private Location generateLocation(Location originLocation, double radiusInMeters) {
+
         Random rand;
         double radiusInDegrees, u, v, w, t, x, y, new_x, foundLatitude, foundLongitude;
+        Location foundLocation;
 
         rand = new Random();
+        foundLocation = new Location("");
 
         radiusInDegrees = radiusInMeters / 111000f;
 
@@ -306,33 +370,31 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         x = w * Math.cos(t);
         y = w * Math.sin(t);
 
-        new_x = x / Math.cos(originLatitudeInDegrees);
+        new_x = x / Math.cos(originLocation.getLatitude());
 
-        foundLatitude = y + originLatitudeInDegrees;
-        foundLongitude = new_x + originLongitudeInDegrees;
+        foundLatitude = y + originLocation.getLatitude();
+        foundLongitude = new_x + originLocation.getLongitude();
 
-        return new LatLng(foundLatitude, foundLongitude);
+        foundLocation.setLatitude(foundLatitude);
+        foundLocation.setLongitude(foundLongitude);
+
+        return foundLocation;
     }
 
-    //Referera till författaren!
-    //https://rosettacode.org/wiki/Haversine_formula
-    private double distanceBetweenPoints(LatLng point1, LatLng point2) {
-        double R = 6372.8;
+    private String findUniqueKey() {
 
-        double dLat = Math.toRadians(point2.latitude - point1.latitude);
-        double dLon = Math.toRadians(point2.longitude - point1.longitude);
-        double lat1 = Math.toRadians(point1.latitude);
-        double lat2 = Math.toRadians(point2.latitude);
+        Integer i = 1;
 
-        double a = Math.pow(Math.sin(dLat / 2), 2) + Math.pow(Math.sin(dLon / 2), 2) * Math.cos(lat1) * Math.cos(lat2);
-        double c = 2 * Math.asin(Math.sqrt(a));
+        while(mGeofenceInfos.containsKey(i.toString())) {
+            i++;
+        }
 
-        return (R * c) * 1000;
+        return i.toString();
     }
 
-    private void addMarkers(ArrayList<LatLng> locations) {
-        for(int i = 0; i < locations.size(); i++) {
-            mGoogleMap.addMarker(new MarkerOptions().position(locations.get(i)));
+    private void addMarkers() {
+        for(GeofenceInfo geofenceInfo : mGeofenceInfos.values()) {
+            mGoogleMap.addMarker(new MarkerOptions().position(new LatLng(geofenceInfo.getLatitude(), geofenceInfo.getLongitude())));
         }
     }
 
@@ -345,6 +407,67 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         mLocationRequest.setInterval(5000);
         mLocationRequest.setFastestInterval(1000);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+    }
+
+    private void addGeofences() {
+        try {
+            mGeofencingClient.addGeofences(getGeofencingRequest(), getGeofencePendingIntent())
+                    .addOnSuccessListener(mActivity, new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void aVoid) {
+                            Log.d("TEST", "addGeofences - onSuccess");
+                        }
+                    })
+                    .addOnFailureListener(mActivity, new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Log.d("TEST", "addGeofences - onFailure");
+                            Log.d("TEST", "" + ((ApiException) e).getStatusCode());
+                        }
+                    });
+        } catch (SecurityException se) {
+            se.printStackTrace();
+        }
+    }
+
+    private GeofencingRequest getGeofencingRequest() {
+        GeofencingRequest.Builder builder = new GeofencingRequest.Builder();
+        builder.setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER);
+
+        for (GeofenceInfo geofenceInfo : mGeofenceInfos.values()) {
+            builder.addGeofence(geofenceInfo.getGeofence());
+        }
+
+        return builder.build();
+    }
+
+    private PendingIntent getGeofencePendingIntent() {
+
+        if (mGeofencePendingIntent != null) {
+            return mGeofencePendingIntent;
+        }
+
+        Intent intent = new Intent(mContext, GeofenceTransitionsIntentService.class);
+
+        mGeofencePendingIntent = PendingIntent.getService(mContext, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        return mGeofencePendingIntent;
+    }
+
+    private void removeGeofences() {
+        mGeofencingClient.removeGeofences(getGeofencePendingIntent())
+                .addOnSuccessListener(mActivity, new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.d("TEST", "removeGeofences - onSuccess");
+                    }
+                })
+                .addOnFailureListener(mActivity, new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.d("TEST", "removeGeofences - onFailure");
+                    }
+                });
     }
 
     private void locationPermissionDeniedRoutine() {
@@ -384,6 +507,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     }
 
     private void updateValuesFromBundle(Bundle savedInstanceState) {
+
         if(savedInstanceState == null) {
             return;
         }
@@ -394,6 +518,69 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
         if(savedInstanceState.containsKey(KEY_LOCATION_SETTINGS_ENABLED)) {
             mLocationSettingEnabled = savedInstanceState.getBoolean(KEY_LOCATION_SETTINGS_ENABLED);
+        }
+    }
+
+    private boolean isFileInPersistentStorage(String filenameToCheck) {
+        String[] allFiles;
+
+        allFiles = mContext.fileList();
+
+        for(String tempFilename : allFiles) {
+            if(filenameToCheck.equals(tempFilename)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void readGeofenceInfosFromPersistentStorage() {
+        FileInputStream fis;
+        ObjectInputStream ois;
+
+        try {
+            fis = mContext.openFileInput(FILENAME_GEOFENCE_INFOS);
+            ois = new ObjectInputStream(fis);
+            mGeofenceInfos = (HashMap<String, GeofenceInfo>) ois.readObject();
+            ois.close();
+            fis.close();
+        }
+        catch (Exception e) {
+            Log.d("TEST", e.getMessage());
+        }
+    }
+
+    private void writeGeofenceInfosToPersistentStorage() {
+        FileOutputStream fos;
+        ObjectOutputStream oos;
+
+        try {
+            fos = mContext.openFileOutput(FILENAME_GEOFENCE_INFOS, Context.MODE_PRIVATE);
+            oos = new ObjectOutputStream(fos);
+            oos.writeObject(mGeofenceInfos);
+            oos.close();
+            fos.close();
+        }
+        catch (Exception e) {
+            Log.d("TEST", e.getMessage());
+        }
+    }
+
+    // https://stackoverflow.com/questions/34384101/after-geofence-transition-how-do-i-do-something-on-main-activity
+    class GeofenceReceiver extends BroadcastReceiver {
+
+        MapFragment mMapFragment;
+
+        public GeofenceReceiver(MapFragment mapFragment) {
+            mMapFragment = mapFragment;
+        }
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.d("TEST", "" + intent.getIntExtra("keyTest", -1));
+
+            Toast.makeText(mContext, "GeofenceReceiver - onReceive", Toast.LENGTH_SHORT).show();
         }
     }
 }

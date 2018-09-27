@@ -16,4 +16,6 @@
 
     <string name="error_permission_denied">Location permission was denied</string>
     <string name="error_location">Could not get location</string>
+
+    <string name="geofence_service_description">The service is used by the app Comic Collector to obtain cards when the user get sufficiently close to a map collectable.</string>
 </resources>

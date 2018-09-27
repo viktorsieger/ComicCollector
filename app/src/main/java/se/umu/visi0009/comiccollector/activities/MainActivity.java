@@ -198,3 +198,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 }
+
+/*
+* TODO: Change hardcoded strings to string resources.
+* TODO: Restrict access level (private/public...) for variables/methods, when appropriate.
+* TODO: Remove function "findUniqueKey" (and copy code) since it is only used in one place?
+* TODO: Change debug logs to other kind of logs (e.g. "Log.d" to "Log.e").
+* TODO: Write better strings.
+* TODO: Comment code.
+*/
