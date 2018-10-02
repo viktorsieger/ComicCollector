@@ -68,7 +68,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private static final String KEY_LOCATION_SETTINGS_ENABLED = "mLocationSettingEnabled";
     private static final double GEOFENCES_MAX_DISTANCE_FROM_USER = 10000;
     private static final double GEOFENCE_RADIUS = 100;
-    private static final int NUMBER_OF_GEOFENCES = 90;
+    private static final int NUMBER_OF_GEOFENCES = 20;
     private static final String FILENAME_GEOFENCE_INFOS = "currentGeofenceInfos";
 
     private Context mContext;
@@ -393,6 +393,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     }
 
     private void addMarkers() {
+
+        Log.d("TEST", "addMarkers");
+
         for(GeofenceInfo geofenceInfo : mGeofenceInfos.values()) {
             mGoogleMap.addMarker(new MarkerOptions().position(new LatLng(geofenceInfo.getLatitude(), geofenceInfo.getLongitude())));
         }
