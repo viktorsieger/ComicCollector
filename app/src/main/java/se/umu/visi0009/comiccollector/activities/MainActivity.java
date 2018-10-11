@@ -13,6 +13,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 
+import java.util.Stack;
+
 import se.umu.visi0009.comiccollector.R;
 import se.umu.visi0009.comiccollector.fragments.AboutFragment;
 import se.umu.visi0009.comiccollector.fragments.AchievementsFragment;
@@ -25,29 +27,28 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private static final String KEY_MAP_FRAGMENT_ADDED = "mMapFragmentAdded";
 
+    private boolean mMapFragmentAdded = false;
     private DrawerLayout mDrawerLayout;
     private FragmentManager mFragmentManager;
     private NavigationView mNavigationView;
-    private Toolbar mToolbar;
-    private boolean mMapFragmentAdded = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        ActionBar actionBar;
-
         super.onCreate(savedInstanceState);
+
+        ActionBar actionBar;
+        Toolbar toolbar;
+
         updateValuesFromBundle(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         mDrawerLayout = findViewById(R.id.drawer_layout);
         mNavigationView = findViewById(R.id.navigation_view);
-        mToolbar = findViewById(R.id.toolbar);
+        toolbar = findViewById(R.id.toolbar);
 
-        setSupportActionBar(mToolbar);
+        setSupportActionBar(toolbar);
 
-        actionBar = getSupportActionBar();
-
-        if(actionBar != null) {
+        if((actionBar = getSupportActionBar()) != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setHomeAsUpIndicator(R.drawable.ic_menu_hamburger);
         }
@@ -56,7 +57,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mFragmentManager.addOnBackStackChangedListener(this);
 
         if(!mMapFragmentAdded) {
-            mFragmentManager.beginTransaction().add(R.id.content_frame, new MapFragment()).commit();
+            MapFragment mapFragment = new MapFragment();
+            mFragmentManager.beginTransaction().add(R.id.content_frame, mapFragment, mapFragment.getClass().getName()).addToBackStack(mapFragment.getClass().getName()).commit();
             mMapFragmentAdded = true;
         }
 
@@ -66,9 +68,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public boolean onOptionsItemSelected(MenuItem menuItem) {
+
+        Fragment currentFragment;
+
         switch(menuItem.getItemId()) {
             case android.R.id.home:
                 mDrawerLayout.openDrawer(GravityCompat.START);
+                return true;
+            case R.id.toolbar_new_geofences:
+                if((currentFragment = mFragmentManager.findFragmentById(R.id.content_frame)) != null) {
+                    currentFragment.onOptionsItemSelected(menuItem);
+                }
+
                 return true;
         }
 
@@ -79,35 +90,36 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
 
         boolean isSameItemSelected;
-        Fragment currentFragment, newFragment;
         Class fragmentClass;
+        Fragment fragmentCurrent, fragmentNew, fragmentLast, fragmentFirst, fragmentMiddle;
+        int i, fragmentIndexInStack;
+        Stack<Fragment> stack;
 
         isSameItemSelected = true;
-        currentFragment = mFragmentManager.findFragmentById(R.id.content_frame);
-        newFragment = null;
+        fragmentCurrent = mFragmentManager.findFragmentById(R.id.content_frame);
         fragmentClass = null;
 
-        if((menuItem.getItemId() == R.id.nav_map) && (currentFragment.getClass() != MapFragment.class)) {
+        if((menuItem.getItemId() == R.id.nav_map) && (fragmentCurrent.getClass() != MapFragment.class)) {
             fragmentClass = MapFragment.class;
             isSameItemSelected = false;
         }
-        else if((menuItem.getItemId() == R.id.nav_collection) && (currentFragment.getClass() != CollectionFragment.class)) {
+        else if((menuItem.getItemId() == R.id.nav_collection) && (fragmentCurrent.getClass() != CollectionFragment.class)) {
             fragmentClass = CollectionFragment.class;
             isSameItemSelected = false;
         }
-        else if((menuItem.getItemId() == R.id.nav_achievements) && (currentFragment.getClass() != AchievementsFragment.class)) {
+        else if((menuItem.getItemId() == R.id.nav_achievements) && (fragmentCurrent.getClass() != AchievementsFragment.class)) {
             fragmentClass = AchievementsFragment.class;
             isSameItemSelected = false;
         }
-        else if((menuItem.getItemId() == R.id.nav_stats) && (currentFragment.getClass() != StatsFragment.class)) {
+        else if((menuItem.getItemId() == R.id.nav_stats) && (fragmentCurrent.getClass() != StatsFragment.class)) {
             fragmentClass = StatsFragment.class;
             isSameItemSelected = false;
         }
-        else if((menuItem.getItemId() == R.id.nav_settings) && (currentFragment.getClass() != SettingsFragment.class)) {
+        else if((menuItem.getItemId() == R.id.nav_settings) && (fragmentCurrent.getClass() != SettingsFragment.class)) {
             fragmentClass = SettingsFragment.class;
             isSameItemSelected = false;
         }
-        else if((menuItem.getItemId() == R.id.nav_about) && (currentFragment.getClass() != AboutFragment.class)) {
+        else if((menuItem.getItemId() == R.id.nav_about) && (fragmentCurrent.getClass() != AboutFragment.class)) {
             fragmentClass = AboutFragment.class;
             isSameItemSelected = false;
         }
@@ -115,13 +127,47 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mDrawerLayout.closeDrawer(GravityCompat.START);
 
         if(!isSameItemSelected) {
-            try {
-                newFragment = (Fragment)fragmentClass.newInstance();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
 
-            mFragmentManager.beginTransaction().replace(R.id.content_frame, newFragment).addToBackStack(null).commit();
+            // Examine if the selected fragment is already in the back stack
+            if((fragmentLast = mFragmentManager.findFragmentByTag(fragmentClass.getName())) != null) {
+
+                fragmentIndexInStack = -1;
+
+                // Find index in back stack
+                for(i = 0; i < mFragmentManager.getBackStackEntryCount(); i++) {
+                    if(fragmentClass.getName().equals(mFragmentManager.getBackStackEntryAt(i).getName())) {
+                        fragmentIndexInStack = i;
+                    }
+                }
+
+                stack = new Stack<>();
+
+                // Push subsequent fragments (i.e. fragments after the selected fragment) to stack
+                for(i = (mFragmentManager.getBackStackEntryCount() - 1); i > fragmentIndexInStack; i--) {
+                    stack.push(mFragmentManager.findFragmentByTag(mFragmentManager.getBackStackEntryAt(i).getName()));
+                }
+
+                // Remove back stack completely
+                mFragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+
+                fragmentFirst = stack.pop();
+                mFragmentManager.beginTransaction().add(R.id.content_frame, fragmentFirst, fragmentFirst.getClass().getName()).addToBackStack(fragmentFirst.getClass().getName()).commit();
+
+                while(!stack.isEmpty()) {
+                    fragmentMiddle = stack.pop();
+                    mFragmentManager.beginTransaction().replace(R.id.content_frame, fragmentMiddle, fragmentMiddle.getClass().getName()).addToBackStack(fragmentMiddle.getClass().getName()).commit();
+                }
+
+                mFragmentManager.beginTransaction().replace(R.id.content_frame, fragmentLast, fragmentLast.getClass().getName()).addToBackStack(fragmentLast.getClass().getName()).commit();
+            }
+            else {
+                try {
+                    fragmentNew = (Fragment)fragmentClass.newInstance();
+                    mFragmentManager.beginTransaction().replace(R.id.content_frame, fragmentNew, fragmentNew.getClass().getName()).addToBackStack(fragmentNew.getClass().getName()).commit();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
 
             menuItem.setChecked(true);
         }
@@ -165,7 +211,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             mDrawerLayout.closeDrawer(GravityCompat.START);
         }
         else {
-            super.onBackPressed();
+            if((mFragmentManager.getBackStackEntryCount() == 1) && (!mFragmentManager.getBackStackEntryAt(0).getName().equals(MapFragment.class.getName()))) {
+                // Remove back stack completely
+                mFragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+
+                Fragment fragmentMap;
+                fragmentMap = new MapFragment();
+                mFragmentManager.beginTransaction().add(R.id.content_frame, fragmentMap, fragmentMap.getClass().getName()).addToBackStack(fragmentMap.getClass().getName()).commit();
+            }
+            else if(mFragmentManager.getBackStackEntryCount() == 1) {
+                finish();
+            }
+            else {
+                super.onBackPressed();
+            }
         }
     }
 
@@ -175,9 +234,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         Fragment currentFragment;
 
-        currentFragment = mFragmentManager.findFragmentById(R.id.content_frame);
-
-        if(currentFragment != null) {
+        if((currentFragment = mFragmentManager.findFragmentById(R.id.content_frame)) != null) {
             currentFragment.onActivityResult(requestCode, resultCode, data);
         }
     }
@@ -206,4 +263,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 * TODO: Change debug logs to other kind of logs (e.g. "Log.d" to "Log.e").
 * TODO: Write better strings.
 * TODO: Comment code.
+*
+* TODO: Write about the known bug. [The bug where the location settings dialog is shown twice after first denying access and restarting the activity.]
 */
+
+// https://stackoverflow.com/questions/34384101/after-geofence-transition-how-do-i-do-something-on-main-activity

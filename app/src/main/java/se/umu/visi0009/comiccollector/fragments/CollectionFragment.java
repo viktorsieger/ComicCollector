@@ -11,6 +11,20 @@ public class CollectionFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Log.d("TEST","CollectionFragment - OnCreate");
+        //Log.d("TEST","CollectionFragment - OnCreate");
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        //Log.d("TEST","CollectionFragment - onResume");
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        //Log.d("TEST","CollectionFragment - onPause");
     }
 }

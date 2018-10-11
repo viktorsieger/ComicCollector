@@ -12,6 +12,8 @@
 
     <string name="menu_header_text">ComicCollector</string>
 
+    <string name="toolbar_new_geofences">New cards</string>
+
     <string name="marvel_banner_text">Marvel FIXA</string>
 
     <string name="error_permission_denied">Location permission was denied</string>
