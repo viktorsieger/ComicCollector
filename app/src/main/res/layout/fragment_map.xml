@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
+<LinearLayout
     android:layout_height="match_parent"
     android:layout_width="match_parent"
     android:orientation="vertical"
@@ -7,18 +7,9 @@
 
     <fragment
         android:id="@+id/map"
-        android:layout_above="@id/marvel_banner"
-        android:layout_alignParentTop="true"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_width="match_parent"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         xmlns:android="http://schemas.android.com/apk/res/android" />
 
-    <TextView
-        android:id="@+id/marvel_banner"
-        android:layout_alignParentBottom="true"
-        android:layout_height="wrap_content"
-        android:layout_width="match_parent"
-        android:text="@string/marvel_banner_text"/>
-
-</RelativeLayout>
+</LinearLayout>

@@ -1,4 +1,4 @@
-package se.umu.visi0009.comiccollector.entities;
+package se.umu.visi0009.comiccollector.other;
 
 import android.app.IntentService;
 import android.content.Intent;
@@ -11,6 +11,7 @@ import com.google.android.gms.location.GeofencingEvent;
 
 import java.util.List;
 
+import se.umu.visi0009.comiccollector.activities.MainActivity;
 import se.umu.visi0009.comiccollector.fragments.MapFragment;
 
 public class GeofenceTransitionsIntentService extends IntentService {
@@ -24,7 +25,8 @@ public class GeofenceTransitionsIntentService extends IntentService {
 
         Geofence geofence;
         GeofencingEvent geofencingEvent;
-        Intent intentGeofenceRequestId;
+        Intent intentNewCard;
+        Intent intentReplaceGeofence;
         List<Geofence> triggeredGeofences;
 
         geofencingEvent = GeofencingEvent.fromIntent(intent);
@@ -41,16 +43,21 @@ public class GeofenceTransitionsIntentService extends IntentService {
             if(triggeredGeofences.size() == 1) {
                 geofence = triggeredGeofences.get(0);
 
-                intentGeofenceRequestId = new Intent(MapFragment.ACTION_GEOFENCE);
-                intentGeofenceRequestId.putExtra(MapFragment.KEY_GEOFENCE_REQUEST_ID, geofence.getRequestId());
-                LocalBroadcastManager.getInstance(this).sendBroadcast(intentGeofenceRequestId);
+                intentReplaceGeofence = new Intent(MapFragment.ACTION_GEOFENCE);
+                intentReplaceGeofence.putExtra(MapFragment.KEY_GEOFENCE_REQUEST_ID, geofence.getRequestId());
+                LocalBroadcastManager.getInstance(this).sendBroadcast(intentReplaceGeofence);
             }
             else {
                 Log.d("TEST", "Error: More than one geofence triggered");
+                return;
             }
         }
         else {
             Log.d("TEST", "Error: Invalid geofence transition type");
+            return;
         }
+
+        intentNewCard = new Intent(MainActivity.ACTION_GEOFENCE_2);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intentNewCard);
     }
 }

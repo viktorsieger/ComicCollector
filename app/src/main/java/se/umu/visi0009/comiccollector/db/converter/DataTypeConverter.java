@@ -1,4 +1,4 @@
-package se.umu.visi0009.comiccollector.data;
+package se.umu.visi0009.comiccollector.db.converter;
 
 import android.arch.persistence.room.TypeConverter;
 

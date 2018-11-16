@@ -21,13 +21,11 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.Geofence;
@@ -50,18 +48,15 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 
+import se.umu.visi0009.comiccollector.ComicCollectorApp;
 import se.umu.visi0009.comiccollector.R;
-import se.umu.visi0009.comiccollector.entities.GeofenceInfo;
-import se.umu.visi0009.comiccollector.entities.GeofenceTransitionsIntentService;
+import se.umu.visi0009.comiccollector.other.GeofenceInfo;
+import se.umu.visi0009.comiccollector.other.GeofenceTransitionsIntentService;
 
 public class MapFragment extends Fragment implements OnMapReadyCallback {
 
@@ -70,7 +65,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
     private static final double GEOFENCES_MAX_DISTANCE_FROM_USER = 10000;
     private static final float GEOFENCE_RADIUS = 100;
-    private static final int DEFAULT_ZOOM = 13;
+    private static final int DEFAULT_ZOOM = 11;
     private static final int FAILURE_ZOOM = 4;
     private static final int NUMBER_OF_GEOFENCES = 10;
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
@@ -113,6 +108,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 mGeofenceInfos.remove(requestId);
                 addGeofenceInfo(mLastKnownLocation);
                 startGeofences();
+
+                Toast.makeText(mContext, "You found a card!", Toast.LENGTH_SHORT).show();
             }
             else {
                 Log.d("TEST", "Error: Key not in hashmap");
@@ -137,14 +134,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
         mLocalBroadcastManager = LocalBroadcastManager.getInstance(mContext);
         mLocalBroadcastManager.registerReceiver(mGeofenceReceiver, new IntentFilter(ACTION_GEOFENCE));
-
-        if(isFileInPersistentStorage(FILENAME_GEOFENCE_INFOS)) {
-            readGeofenceInfosFromPersistentStorage();
-            mGeofenceInfosExists = true;
-        }
-        else {
-            mGeofenceInfosExists = false;
-        }
 
         mLocationCallback = new LocationCallback() {
             @Override
@@ -172,6 +161,14 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         super.onActivityCreated(savedInstanceState);
         mActivity = getActivity();
         mToolbar = mActivity.findViewById(R.id.toolbar);
+
+        if(((ComicCollectorApp)mActivity.getApplication()).isFileInPersistentStorage(FILENAME_GEOFENCE_INFOS)) {
+            mGeofenceInfos = (HashMap<String, GeofenceInfo>)((ComicCollectorApp)mActivity.getApplication()).readObjectFromPersistentStorage(FILENAME_GEOFENCE_INFOS);
+            mGeofenceInfosExists = true;
+        }
+        else {
+            mGeofenceInfosExists = false;
+        }
     }
 
     @Override
@@ -212,7 +209,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         }
 
         if(mGeofenceInfosExists) {
-            writeGeofenceInfosToPersistentStorage();
+            ((ComicCollectorApp)mActivity.getApplication()).writeObjectToPersistentStorage(FILENAME_GEOFENCE_INFOS, mGeofenceInfos);
         }
 
         mToolbar.getMenu().clear();
@@ -609,50 +606,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
         if(savedInstanceState.containsKey(KEY_LOCATION_SETTINGS_ENABLED)) {
             mLocationSettingEnabled = savedInstanceState.getBoolean(KEY_LOCATION_SETTINGS_ENABLED);
-        }
-    }
-
-    private boolean isFileInPersistentStorage(String filenameToCheck) {
-        String[] allFiles;
-
-        allFiles = mContext.fileList();
-
-        for(String tempFilename : allFiles) {
-            if(filenameToCheck.equals(tempFilename)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private void readGeofenceInfosFromPersistentStorage() {
-        FileInputStream fis;
-        ObjectInputStream ois;
-
-        try {
-            fis = mContext.openFileInput(FILENAME_GEOFENCE_INFOS);
-            ois = new ObjectInputStream(fis);
-            mGeofenceInfos = (HashMap<String, GeofenceInfo>) ois.readObject();
-            ois.close();
-            fis.close();
-        } catch(Exception e) {
-            Log.d("TEST", e.getMessage());
-        }
-    }
-
-    private void writeGeofenceInfosToPersistentStorage() {
-        FileOutputStream fos;
-        ObjectOutputStream oos;
-
-        try {
-            fos = mContext.openFileOutput(FILENAME_GEOFENCE_INFOS, Context.MODE_PRIVATE);
-            oos = new ObjectOutputStream(fos);
-            oos.writeObject(mGeofenceInfos);
-            oos.close();
-            fos.close();
-        } catch(Exception e) {
-            Log.d("TEST", e.getMessage());
         }
     }
 

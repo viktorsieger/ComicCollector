@@ -1,4 +1,4 @@
-package se.umu.visi0009.comiccollector.entities;
+package se.umu.visi0009.comiccollector.other;
 
 import com.google.android.gms.location.Geofence;
 

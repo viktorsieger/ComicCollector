@@ -1,9 +1,9 @@
-package se.umu.visi0009.comiccollector.entities;
+package se.umu.visi0009.comiccollector.db.entities;
 
 import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.ForeignKey;
-import android.arch.persistence.room.Index;
+import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.PrimaryKey;
 
 import java.util.Date;
@@ -11,29 +11,44 @@ import java.util.Date;
 import se.umu.visi0009.comiccollector.enums.CardCondition;
 
 @Entity(tableName = "cards",
-        indices = {@Index(value = {"player_id", "id"}), @Index(value = {"character_id", "id"})},
-        foreignKeys = {@ForeignKey(entity = Player.class, parentColumns = "id", childColumns = "player_id", onDelete = ForeignKey.CASCADE),
-                       @ForeignKey(entity = Character.class, parentColumns = "id", childColumns = "character_id")})
+        foreignKeys = {@ForeignKey(entity = Player.class,
+                                   parentColumns = "id",
+                                   childColumns = "player_id",
+                                   onDelete = ForeignKey.CASCADE,
+                                   onUpdate = ForeignKey.CASCADE),
+                       @ForeignKey(entity = Character.class,
+                                   parentColumns = "id",
+                                   childColumns = "character_id",
+                                   onDelete = ForeignKey.RESTRICT,
+                                   onUpdate = ForeignKey.CASCADE)})
 public class Card {
 
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "id")
     private int id;
 
-    @ColumnInfo(name = "player_id")
+    @ColumnInfo(name = "player_id", index = true)
     private int playerID;
 
-    @ColumnInfo(name = "character_id")
+    @ColumnInfo(name = "character_id", index = true)
     private int characterID;
 
-    @ColumnInfo(name = "condition")
+    @ColumnInfo(name = "condition", index = true)
     private CardCondition condition;
 
-    @ColumnInfo(name = "date_found")
+    @ColumnInfo(name = "date_found", index = true)
     private Date dateFound;
 
     public Card() {
 
+    }
+
+    @Ignore
+    public Card(int playerID, int characterID, CardCondition condition, Date dateFound) {
+        this.playerID = playerID;
+        this.characterID = characterID;
+        this.condition = condition;
+        this.dateFound = dateFound;
     }
 
     public int getId() {
