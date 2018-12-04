@@ -13,6 +13,8 @@
     <string name="menu_header_text">ComicCollector</string>
 
     <string name="toolbar_new_geofences">New cards</string>
+    <string name="toolbar_search">Search</string>
+    <string name="toolbar_sort">Sort</string>
 
     <string name="marvel_banner_text">Marvel FIXA</string>
 

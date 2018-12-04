@@ -1,5 +1,7 @@
 package se.umu.visi0009.comiccollector;
 
+import android.arch.lifecycle.LiveData;
+
 import java.util.Date;
 import java.util.List;
 
@@ -31,7 +33,6 @@ public class DataRepository {
 
 
 
-
     public void insertCharacter(Character character) {
         mDatabase.characterDAO().insertCharacters(character);
     }
@@ -54,5 +55,9 @@ public class DataRepository {
 
     public List<Character> loadCharactersNotUpdatedAfter(Date date) {
         return mDatabase.characterDAO().loadCharactersNotUpdatedAfter(date);
+    }
+
+    public LiveData<List<Character>> loadCharacters() {
+        return mDatabase.characterDAO().loadCharacters();
     }
 }

@@ -4,6 +4,8 @@ import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.PrimaryKey;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -102,5 +104,10 @@ public class Character {
 
     public void setUrlWiki(String urlWiki) {
         this.urlWiki = urlWiki;
+    }
+
+    @Ignore
+    public Bitmap getCharacterImage() {
+        return BitmapFactory.decodeFile(pathLocalImage);
     }
 }

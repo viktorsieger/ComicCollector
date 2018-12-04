@@ -42,7 +42,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
-import java.util.Stack;
 
 import se.umu.visi0009.comiccollector.ComicCollectorApp;
 import se.umu.visi0009.comiccollector.R;
@@ -64,9 +63,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private static final String FILENAME_DIRECTORY_CHARACTERS_IMAGES = "imagesCharacters";
     private static final String FILENAME_MARVEL_CHARACTER_COUNT = "characterCountMarvel";
-    private static final String KEY_MAP_FRAGMENT_ADDED = "mMapFragmentAdded";
+    private static final String KEY_FIRST_TIME_SETUP_DONE = "mFirstTimeSetupDone";
 
-    private boolean mMapFragmentAdded = false;
+    private boolean mFirstTimeSetupDone = false;
     private Character mCharacter1;
     private Character mCharacter2;
     private DrawerLayout mDrawerLayout;
@@ -258,12 +257,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
 
         ActionBar actionBar;
         Toolbar toolbar;
 
+        super.onCreate(savedInstanceState);
         updateValuesFromBundle(savedInstanceState);
+
         setContentView(R.layout.activity_main);
 
         mDrawerLayout = findViewById(R.id.drawer_layout);
@@ -305,16 +305,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         Fragment currentFragment;
 
-        switch(menuItem.getItemId()) {
-            case android.R.id.home:
-                mDrawerLayout.openDrawer(GravityCompat.START);
-                return true;
-            case R.id.toolbar_new_geofences:
-                if((currentFragment = mFragmentManager.findFragmentById(R.id.content_frame)) != null) {
-                    currentFragment.onOptionsItemSelected(menuItem);
-                }
+        if(menuItem.getItemId() == android.R.id.home) {
+            mDrawerLayout.openDrawer(GravityCompat.START);
+            return true;
+        }
+        else if((menuItem.getItemId() == R.id.toolbar_new_geofences) || (menuItem.getItemId() == R.id.toolbar_sort)) {
+            if((currentFragment = mFragmentManager.findFragmentById(R.id.content_frame)) != null) {
+                currentFragment.onOptionsItemSelected(menuItem);
+            }
 
-                return true;
+            return true;
         }
 
         return super.onOptionsItemSelected(menuItem);
@@ -325,9 +325,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         boolean isSameItemSelected;
         Class fragmentClass;
-        Fragment fragmentCurrent, fragmentNew, fragmentLast, fragmentFirst, fragmentMiddle;
-        int i, fragmentIndexInStack;
-        Stack<Fragment> stack;
+        Fragment fragmentCurrent, fragmentNew;
 
         isSameItemSelected = true;
         fragmentCurrent = mFragmentManager.findFragmentById(R.id.content_frame);
@@ -361,46 +359,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mDrawerLayout.closeDrawer(GravityCompat.START);
 
         if(!isSameItemSelected) {
-
-            // Examine if the selected fragment is already in the back stack
-            if((fragmentLast = mFragmentManager.findFragmentByTag(fragmentClass.getName())) != null) {
-
-                fragmentIndexInStack = -1;
-
-                // Find index in back stack
-                for(i = 0; i < mFragmentManager.getBackStackEntryCount(); i++) {
-                    if(fragmentClass.getName().equals(mFragmentManager.getBackStackEntryAt(i).getName())) {
-                        fragmentIndexInStack = i;
-                    }
-                }
-
-                stack = new Stack<>();
-
-                // Push subsequent fragments (i.e. fragments after the selected fragment) to stack
-                for(i = (mFragmentManager.getBackStackEntryCount() - 1); i > fragmentIndexInStack; i--) {
-                    stack.push(mFragmentManager.findFragmentByTag(mFragmentManager.getBackStackEntryAt(i).getName()));
-                }
-
-                // Remove back stack completely
-                mFragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-
-                fragmentFirst = stack.pop();
-                mFragmentManager.beginTransaction().add(R.id.content_frame, fragmentFirst, fragmentFirst.getClass().getName()).addToBackStack(fragmentFirst.getClass().getName()).commit();
-
-                while(!stack.isEmpty()) {
-                    fragmentMiddle = stack.pop();
-                    mFragmentManager.beginTransaction().replace(R.id.content_frame, fragmentMiddle, fragmentMiddle.getClass().getName()).addToBackStack(fragmentMiddle.getClass().getName()).commit();
-                }
-
-                mFragmentManager.beginTransaction().replace(R.id.content_frame, fragmentLast, fragmentLast.getClass().getName()).addToBackStack(fragmentLast.getClass().getName()).commit();
-            }
-            else {
-                try {
-                    fragmentNew = (Fragment)fragmentClass.newInstance();
-                    mFragmentManager.beginTransaction().replace(R.id.content_frame, fragmentNew, fragmentNew.getClass().getName()).addToBackStack(fragmentNew.getClass().getName()).commit();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+            try {
+                fragmentNew = (Fragment)fragmentClass.newInstance();
+                mFragmentManager.beginTransaction().replace(R.id.content_frame, fragmentNew, fragmentNew.getClass().getName()).addToBackStack(fragmentNew.getClass().getName()).commit();
+            } catch(Exception e) {
+                e.printStackTrace();
             }
 
             menuItem.setChecked(true);
@@ -445,15 +408,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             mDrawerLayout.closeDrawer(GravityCompat.START);
         }
         else {
-            if((mFragmentManager.getBackStackEntryCount() == 1) && (!mFragmentManager.getBackStackEntryAt(0).getName().equals(MapFragment.class.getName()))) {
-                // Remove back stack completely
-                mFragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-
-                Fragment fragmentMap;
-                fragmentMap = new MapFragment();
-                mFragmentManager.beginTransaction().add(R.id.content_frame, fragmentMap, fragmentMap.getClass().getName()).addToBackStack(fragmentMap.getClass().getName()).commit();
-            }
-            else if(mFragmentManager.getBackStackEntryCount() == 1) {
+            if(mFragmentManager.getBackStackEntryCount() == 1) {
                 finish();
             }
             else {
@@ -464,9 +419,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
 
         Fragment currentFragment;
+
+        super.onActivityResult(requestCode, resultCode, data);
 
         if((currentFragment = mFragmentManager.findFragmentById(R.id.content_frame)) != null) {
             currentFragment.onActivityResult(requestCode, resultCode, data);
@@ -475,7 +431,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        outState.putBoolean(KEY_MAP_FRAGMENT_ADDED, mMapFragmentAdded);
+        outState.putBoolean(KEY_FIRST_TIME_SETUP_DONE, mFirstTimeSetupDone);
         super.onSaveInstanceState(outState);
     }
 
@@ -484,8 +440,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             return;
         }
 
-        if(savedInstanceState.containsKey(KEY_MAP_FRAGMENT_ADDED)) {
-            mMapFragmentAdded = savedInstanceState.getBoolean(KEY_MAP_FRAGMENT_ADDED);
+        if(savedInstanceState.containsKey(KEY_FIRST_TIME_SETUP_DONE)) {
+            mFirstTimeSetupDone = savedInstanceState.getBoolean(KEY_FIRST_TIME_SETUP_DONE);
         }
     }
 
@@ -506,13 +462,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private void run() {
-        updateCharacterCount();
-        updateCharacters();
+        if(!mFirstTimeSetupDone) {
+            updateCharacterCount();
+            updateCharacters();
 
-        if(!mMapFragmentAdded) {
             MapFragment mapFragment = new MapFragment();
             mFragmentManager.beginTransaction().add(R.id.content_frame, mapFragment, mapFragment.getClass().getName()).addToBackStack(mapFragment.getClass().getName()).commit();
-            mMapFragmentAdded = true;
+            mFirstTimeSetupDone = true;
         }
     }
 
@@ -757,20 +713,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         calendar.add(Calendar.HOUR_OF_DAY, -24);
         return calendar.getTime();
     }
-}
 
-/*
-* TODO: Remove Serializable-interface from GeofenceInfo-class/CharacterCountHelper-class (or change it to Parcelable?).
-* TODO: Change hardcoded strings to string resources.
-* TODO: Restrict access level (private/public...) for variables/methods, when appropriate.
-* TODO: Remove function "findUniqueKey" (and copy code) since it is only used in one place?
-* TODO: Change debug logs to other kind of logs (e.g. "Log.d" to "Log.e").
-* TODO: Write better strings.
-* TODO: Comment code.
-*
-* TODO: Improvment: Live-db is not in use. So if the collections fragment is viewed before the app has connected to the Marvel api and successfully added a Card, the same Card won't show in the list.
-* TODO: Improvment: The repository design pattern is not followed (a lot of the logic is carried out in MainActivity instead).
-* TODO: Improvment: All "image not found"-images could be replaced by one image.
-*
-* TODO: Write about the known bug. [The bug where the location settings dialog is shown twice after first denying access and restarting the activity.]
-*/
+    public void show(Character character) {
+        Log.d("TEST", "MainActivity - show");
+        Log.d("TEST", character.getName());
+    }
+}

@@ -125,8 +125,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
 
+        super.onCreate(savedInstanceState);
         updateValuesFromBundle(savedInstanceState);
 
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(mContext);
@@ -162,6 +162,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         mActivity = getActivity();
         mToolbar = mActivity.findViewById(R.id.toolbar);
 
+        mToolbar.setTitle("ComicCollector");
+
         if(((ComicCollectorApp)mActivity.getApplication()).isFileInPersistentStorage(FILENAME_GEOFENCE_INFOS)) {
             mGeofenceInfos = (HashMap<String, GeofenceInfo>)((ComicCollectorApp)mActivity.getApplication()).readObjectFromPersistentStorage(FILENAME_GEOFENCE_INFOS);
             mGeofenceInfosExists = true;
@@ -173,6 +175,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
     @Override
     public void onResume() {
+
         super.onResume();
 
         mToolbar.inflateMenu(R.menu.toolbar_mapfragment);
@@ -199,6 +202,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
     @Override
     public void onPause() {
+
         super.onPause();
 
         stopLocationUpdates();

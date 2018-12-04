@@ -103,3 +103,18 @@ public class ComicCollectorApp extends Application {
         }
     }
 }
+
+/*
+ * TODO: Remove Serializable-interface from GeofenceInfo-class/CharacterCountHelper-class (or change it to Parcelable?).
+ * TODO: Change hardcoded strings to string resources.
+ * TODO: Restrict access level (private/public...) for variables/methods, when appropriate.
+ * TODO: Remove function "findUniqueKey" (and copy code) since it is only used in one place?
+ * TODO: Change debug logs to other kind of logs (e.g. "Log.d" to "Log.e").
+ * TODO: Write better strings.
+ * TODO: Comment code.
+ *
+ * TODO: Improvment: Live-db is not in use. So if the collections fragment is viewed before the app has connected to the Marvel api and successfully added a Card, the same Card won't show in the list.
+ * TODO: Improvment: The repository design pattern is not followed (a lot of the logic is carried out in MainActivity instead).
+ * TODO: Improvment: All "image not found"-images could be replaced by one image.
+ * TODO: Improvment: It is possible (e.g. if no internet connection is available) that the toast "You found a card!" is shown but no new card is added.
+ */

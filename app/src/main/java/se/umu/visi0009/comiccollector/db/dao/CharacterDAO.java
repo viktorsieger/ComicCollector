@@ -1,5 +1,6 @@
 package se.umu.visi0009.comiccollector.db.dao;
 
+import android.arch.lifecycle.LiveData;
 import android.arch.persistence.room.Dao;
 import android.arch.persistence.room.Delete;
 import android.arch.persistence.room.Insert;
@@ -29,4 +30,7 @@ public interface CharacterDAO {
 
     @Query("SELECT * FROM characters WHERE last_updated < :date")
     List<Character> loadCharactersNotUpdatedAfter(Date date);
+
+    @Query("SELECT * FROM characters ORDER BY name ASC")
+    LiveData<List<Character>> loadCharacters();
 }
