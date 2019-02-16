@@ -6,18 +6,19 @@
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/recycler_view"
-        android:layout_above="@id/marvel_banner"
+        android:layout_above="@id/collection_marvel_banner"
         android:layout_alignParentTop="true"
         android:layout_height="wrap_content"
         android:layout_width="match_parent"
         android:scrollbars="vertical"/>
 
     <TextView
+        android:background="@color/colorPrimary"
         android:gravity="center_horizontal"
-        android:id="@+id/marvel_banner"
+        android:id="@+id/collection_marvel_banner"
         android:layout_alignParentBottom="true"
         android:layout_height="wrap_content"
         android:layout_width="match_parent"
-        android:text="@string/marvel_banner_text"/>
+        android:text="@string/collection_marvel_banner_string"/>
 
 </RelativeLayout>

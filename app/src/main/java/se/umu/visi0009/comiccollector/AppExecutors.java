@@ -3,25 +3,39 @@ package se.umu.visi0009.comiccollector;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+/**
+ * Global executors for background tasks.
+ *
+ * @author Viktor Sieger
+ * @version 1.0
+ */
 public class AppExecutors {
 
-    private final Executor mDiskIO;
-    private final Executor mNetworkIO;
+    private final Executor mBackgroundThreads;
 
-    private AppExecutors(Executor diskIO, Executor networkIO) {
-        this.mDiskIO = diskIO;
-        this.mNetworkIO = networkIO;
+    /**
+     * Constructor for the class. Initializes the Executor attribute.
+     *
+     * @param backgroundThreads     Executor to assign to the object.
+     */
+    private AppExecutors(Executor backgroundThreads) {
+        this.mBackgroundThreads = backgroundThreads;
     }
 
+    /**
+     * Constructor for the class. Calls the private constructor with the
+     * Executor to use.
+     */
     public AppExecutors() {
-        this(Executors.newSingleThreadExecutor(), Executors.newSingleThreadExecutor());
+        this(Executors.newFixedThreadPool(2));
     }
 
-    public Executor diskIO() {
-        return mDiskIO;
-    }
-
-    public Executor networkIO() {
-        return mNetworkIO;
+    /**
+     * Accessor method for the executor.
+     *
+     * @return      The object's executor.
+     */
+    public Executor backgroundThreads() {
+        return mBackgroundThreads;
     }
 }

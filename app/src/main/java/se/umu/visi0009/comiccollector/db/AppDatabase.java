@@ -9,7 +9,6 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 
 import java.math.BigDecimal;
-import java.util.Date;
 
 import se.umu.visi0009.comiccollector.AppExecutors;
 import se.umu.visi0009.comiccollector.db.converter.DataTypeConverter;
@@ -21,13 +20,20 @@ import se.umu.visi0009.comiccollector.db.entities.Achievement;
 import se.umu.visi0009.comiccollector.db.entities.Card;
 import se.umu.visi0009.comiccollector.db.entities.Character;
 import se.umu.visi0009.comiccollector.db.entities.Player;
-import se.umu.visi0009.comiccollector.enums.AchievementDifficulty;
+import se.umu.visi0009.comiccollector.other.enums.AchievementDifficulty;
 
-@Database(entities = {Player.class, Character.class, Card.class, Achievement.class}, version = 1, exportSchema = false)
+/**
+ * Holds the database instance and methods to create and retrieve the database.
+ *
+ * @author Viktor Sieger
+ * @version 1.0
+ */
+@Database(entities = {Player.class, Character.class, Card.class, Achievement.class},
+          version = 1,
+          exportSchema = false)
 @TypeConverters({DataTypeConverter.class})
 public abstract class AppDatabase extends RoomDatabase {
 
-    private static final long ACHIEVEMENT_DATE_LONG_DEFAULT = 0;
     private static final String DATABASE_NAME = "comicCollectorDatabase";
 
     private static volatile AppDatabase sInstance = null;
@@ -37,6 +43,15 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract CardDAO cardDAO();
     public abstract AchievementDAO achievementDAO();
 
+    /**
+     * Static method used to get the database singleton (or create the database
+     * if no database exists). The method uses lazy initialization and is
+     * thread-safe.
+     *
+     * @param context       The context for the database.
+     * @param executors     Executors that perform background tasks.
+     * @return              The database.
+     */
     public static AppDatabase getInstance(final Context context, final AppExecutors executors) {
         if(sInstance == null) {
             synchronized(AppDatabase.class) {
@@ -48,6 +63,13 @@ public abstract class AppDatabase extends RoomDatabase {
         return sInstance;
     }
 
+    /**
+     * Creates a database and populates it with data.
+     *
+     * @param appContext    The context for the database.
+     * @param executors     Executors that perform background tasks.
+     * @return              The created database.
+     */
     private static AppDatabase buildDatabase(final Context appContext, final AppExecutors executors) {
         return Room.databaseBuilder(appContext, AppDatabase.class, DATABASE_NAME)
                 .addCallback(new Callback() {
@@ -55,7 +77,7 @@ public abstract class AppDatabase extends RoomDatabase {
                     public void onCreate(@NonNull SupportSQLiteDatabase db) {
                         super.onCreate(db);
 
-                        executors.diskIO().execute(new Runnable() {
+                        executors.backgroundThreads().execute(new Runnable() {
                             @Override
                             public void run() {
                                 //Pre-populate database
@@ -66,11 +88,11 @@ public abstract class AppDatabase extends RoomDatabase {
                                     public void run() {
                                         long playerId = database.playerDAO().insertPlayer(new Player());
 
-                                        Achievement achievement1 = new Achievement(new BigDecimal(playerId).intValueExact(), "Novice collector", "Collect 3 card.", AchievementDifficulty.VERY_EASY, new Date(ACHIEVEMENT_DATE_LONG_DEFAULT));
-                                        Achievement achievement2 = new Achievement(new BigDecimal(playerId).intValueExact(), "\\u221A100", "Collect 10 cards.", AchievementDifficulty.EASY, new Date(ACHIEVEMENT_DATE_LONG_DEFAULT));
-                                        Achievement achievement3 = new Achievement(new BigDecimal(playerId).intValueExact(), "CXI", "Collect 111 cards.", AchievementDifficulty.MEDIUM, new Date(ACHIEVEMENT_DATE_LONG_DEFAULT));
-                                        Achievement achievement4 = new Achievement(new BigDecimal(playerId).intValueExact(), "The number of the beast", "Collect 666 cards.", AchievementDifficulty.HARD, new Date(ACHIEVEMENT_DATE_LONG_DEFAULT));
-                                        Achievement achievement5 = new Achievement(new BigDecimal(playerId).intValueExact(), "Elite collector", "Collect 1337 cards.", AchievementDifficulty.VERY_HARD, new Date(ACHIEVEMENT_DATE_LONG_DEFAULT));
+                                        Achievement achievement1 = new Achievement(new BigDecimal(playerId).intValueExact(), "Novice collector", "Collect 3 cards.", AchievementDifficulty.VERY_EASY, Achievement.DATE_INCOMPLETE);
+                                        Achievement achievement2 = new Achievement(new BigDecimal(playerId).intValueExact(), "1010", "Collect 10 cards.", AchievementDifficulty.EASY, Achievement.DATE_INCOMPLETE);
+                                        Achievement achievement3 = new Achievement(new BigDecimal(playerId).intValueExact(), "CXI", "Collect 111 cards.", AchievementDifficulty.MEDIUM, Achievement.DATE_INCOMPLETE);
+                                        Achievement achievement4 = new Achievement(new BigDecimal(playerId).intValueExact(), "The number of the beast", "Collect 666 cards.", AchievementDifficulty.HARD, Achievement.DATE_INCOMPLETE);
+                                        Achievement achievement5 = new Achievement(new BigDecimal(playerId).intValueExact(), "Elite collector", "Collect 1337 cards.", AchievementDifficulty.VERY_HARD, Achievement.DATE_INCOMPLETE);
 
                                         database.achievementDAO().insertAchievements(achievement1, achievement2, achievement3, achievement4, achievement5);
                                     }

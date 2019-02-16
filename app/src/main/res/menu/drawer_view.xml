@@ -5,33 +5,25 @@
         android:id="@+id/drawer_section_top">
 
         <item
-            android:icon="@drawable/ic_menu_map"
-            android:id="@+id/nav_map"
-            android:title="@string/menu_map" />
+            android:icon="@drawable/ic_drawer_map"
+            android:id="@+id/drawer_item_map"
+            android:title="@string/drawer_item_map_string" />
         <item
-            android:icon="@drawable/ic_menu_collection"
-            android:id="@+id/nav_collection"
-            android:title="@string/menu_collection" />
+            android:icon="@drawable/ic_drawer_collection"
+            android:id="@+id/drawer_item_collection"
+            android:title="@string/drawer_item_collection_string" />
         <item
-            android:icon="@drawable/ic_menu_achievements"
-            android:id="@+id/nav_achievements"
-            android:title="@string/menu_achievements" />
-        <item
-            android:icon="@drawable/ic_menu_stats"
-            android:id="@+id/nav_stats"
-            android:title="@string/menu_stats" />
+            android:icon="@drawable/ic_drawer_achievements"
+            android:id="@+id/drawer_item_achievements"
+            android:title="@string/drawer_item_achievements_string" />
     </group>
     <group
         android:checkableBehavior="single"
         android:id="@+id/drawer_section_bottom">
 
         <item
-            android:icon="@drawable/ic_menu_settings"
-            android:id="@+id/nav_settings"
-            android:title="@string/menu_settings" />
-        <item
-            android:icon="@drawable/ic_menu_info"
-            android:id="@+id/nav_about"
-            android:title="@string/menu_about" />
+            android:icon="@drawable/ic_drawer_info"
+            android:id="@+id/drawer_item_about"
+            android:title="@string/drawer_item_about_string" />
     </group>
 </menu>

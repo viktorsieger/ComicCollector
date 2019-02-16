@@ -2,7 +2,6 @@ package se.umu.visi0009.comiccollector.db.dao;
 
 import android.arch.lifecycle.LiveData;
 import android.arch.persistence.room.Dao;
-import android.arch.persistence.room.Delete;
 import android.arch.persistence.room.Insert;
 import android.arch.persistence.room.OnConflictStrategy;
 import android.arch.persistence.room.Query;
@@ -13,6 +12,12 @@ import java.util.List;
 
 import se.umu.visi0009.comiccollector.db.entities.Character;
 
+/**
+ * Data access object for the 'characters' table in the database.
+ *
+ * @author Viktor Sieger
+ * @version 1.0
+ */
 @Dao
 public interface CharacterDAO {
 
@@ -22,9 +27,6 @@ public interface CharacterDAO {
     @Update
     void updateCharacters(Character... characters);
 
-    @Delete
-    void deleteCharacters(Character... characters);
-
     @Query("SELECT * FROM characters WHERE id = :characterId")
     Character loadCharacter(int characterId);
 
@@ -33,4 +35,7 @@ public interface CharacterDAO {
 
     @Query("SELECT * FROM characters ORDER BY name ASC")
     LiveData<List<Character>> loadCharacters();
+
+    @Query("SELECT * FROM characters WHERE id = :characterID")
+    LiveData<Character> loadCharacterByID(int characterID);
 }

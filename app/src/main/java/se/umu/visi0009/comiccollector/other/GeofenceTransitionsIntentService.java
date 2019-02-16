@@ -11,15 +11,30 @@ import com.google.android.gms.location.GeofencingEvent;
 
 import java.util.List;
 
-import se.umu.visi0009.comiccollector.activities.MainActivity;
-import se.umu.visi0009.comiccollector.fragments.MapFragment;
+import se.umu.visi0009.comiccollector.ui.activities.MainActivity;
+import se.umu.visi0009.comiccollector.ui.fragments.MapFragment;
 
+/**
+ * The service that handles triggered Geofences.
+ *
+ * @author Viktor Sieger
+ * @version 1.0
+ */
 public class GeofenceTransitionsIntentService extends IntentService {
+
+    private static final String TAG = "GeofenceTransitions";
 
     public GeofenceTransitionsIntentService() {
         super("GeofenceTransitionsIntentService");
     }
 
+    /**
+     * Called when a Geofence is triggered. Sends a broadcast to the MapFragment
+     * so the Geofence can be replaced. Also sends a broadcast to the
+     * MainActivity that creates a new card.
+     *
+     * @param intent    An intent containing the geofencing event data.
+     */
     @Override
     protected void onHandleIntent(Intent intent) {
 
@@ -32,7 +47,7 @@ public class GeofenceTransitionsIntentService extends IntentService {
         geofencingEvent = GeofencingEvent.fromIntent(intent);
 
         if (geofencingEvent.hasError()) {
-            Log.d("TEST", GeofenceStatusCodes.getStatusCodeString(geofencingEvent.getErrorCode()));
+            Log.e(TAG, GeofenceStatusCodes.getStatusCodeString(geofencingEvent.getErrorCode()));
             return;
         }
 
@@ -48,12 +63,12 @@ public class GeofenceTransitionsIntentService extends IntentService {
                 LocalBroadcastManager.getInstance(this).sendBroadcast(intentReplaceGeofence);
             }
             else {
-                Log.d("TEST", "Error: More than one geofence triggered");
+                Log.e(TAG, "Error: More than one geofence triggered");
                 return;
             }
         }
         else {
-            Log.d("TEST", "Error: Invalid geofence transition type");
+            Log.e(TAG, "Error: Invalid geofence transition type");
             return;
         }
 

@@ -5,16 +5,16 @@
 
     <item
         android:icon="@drawable/ic_toolbar_search"
-        android:id="@+id/toolbar_search"
+        android:id="@+id/toolbar_collection_search"
         android:orderInCategory="1"
-        android:title="@string/toolbar_search"
+        android:title="@string/toolbar_collection_search_string"
         app:actionViewClass="android.support.v7.widget.SearchView"
         app:showAsAction="ifRoom" />
 
     <item
         android:icon="@drawable/ic_toolbar_sort"
-        android:id="@+id/toolbar_sort"
+        android:id="@+id/toolbar_collection_sort"
         android:orderInCategory="2"
-        android:title="@string/toolbar_sort"
+        android:title="@string/toolbar_collection_sort_string"
         app:showAsAction="ifRoom" />
 </menu>

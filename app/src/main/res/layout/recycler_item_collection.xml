@@ -11,23 +11,23 @@
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <ImageView
-        android:contentDescription="PLACE CONTENT HERE"
-        android:id="@+id/item_image"
+        android:contentDescription="@string/collection_recycler_item_image_description"
+        android:id="@+id/collection_recycler_item_image"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_height="40dp"
         android:layout_width="40dp" />
 
     <TextView
-        android:id="@+id/item_text"
+        android:id="@+id/collection_recycler_item_name"
         android:layout_alignParentTop="true"
         android:layout_alignParentBottom="true"
         android:layout_centerVertical="true"
         android:layout_height="wrap_content"
         android:layout_marginLeft="16dp"
         android:layout_marginStart="16dp"
-        android:layout_toEndOf="@id/item_image"
-        android:layout_toRightOf="@id/item_image"
+        android:layout_toEndOf="@id/collection_recycler_item_image"
+        android:layout_toRightOf="@id/collection_recycler_item_image"
         android:layout_width="wrap_content"
         android:textColor="@color/colorTextPrimary"
         android:textSize="16sp" />

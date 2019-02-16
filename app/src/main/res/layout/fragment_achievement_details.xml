@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <RelativeLayout
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:padding="15dp">
+
+        <TextView
+            android:id="@+id/achievement_description_header"
+            android:layout_alignParentTop="true"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:text="@string/achievement_description_header_string"
+            android:textSize="20sp"/>
+
+        <TextView
+            android:id="@+id/achievement_description_text"
+            android:layout_below="@id/achievement_description_header"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:paddingBottom="5dp"/>
+
+        <TextView
+            android:id="@+id/achievement_difficulty_header"
+            android:layout_below="@id/achievement_description_text"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:text="@string/achievement_difficulty_header_string"
+            android:textSize="20sp"/>
+
+        <TextView
+            android:id="@+id/achievement_difficulty_text"
+            android:layout_below="@id/achievement_difficulty_header"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:paddingBottom="5dp"/>
+
+        <TextView
+            android:id="@+id/achievement_status_header"
+            android:layout_below="@id/achievement_difficulty_text"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:text="@string/achievement_status_header_string"
+            android:textSize="20sp"/>
+
+        <TextView
+            android:id="@+id/achievement_status_text"
+            android:layout_below="@id/achievement_status_header"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"/>
+
+    </RelativeLayout>
+
+</ScrollView>

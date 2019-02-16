@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <ScrollView
+        android:layout_above="@id/character_details_marvel_banner"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent">
+
+        <RelativeLayout
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:padding="15dp">
+
+            <android.support.v7.widget.AppCompatImageView
+                android:adjustViewBounds="true"
+                android:id="@+id/character_image"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:maxHeight="250px"
+                android:maxWidth="250px"
+                android:paddingBottom="7dp"
+                android:scaleType="centerInside"/>
+
+            <TextView
+                android:id="@+id/character_description_header"
+                android:layout_below="@id/character_image"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:text="@string/character_description_header_string"
+                android:textSize="20sp"/>
+
+            <TextView
+                android:id="@+id/character_description_text"
+                android:layout_below="@id/character_description_header"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:paddingBottom="5dp"/>
+
+            <TextView
+                android:id="@+id/character_appearances_header"
+                android:layout_below="@id/character_description_text"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:text="@string/character_appearances_header_string"
+                android:textSize="20sp"/>
+
+            <TextView
+                android:id="@+id/character_appearances_text"
+                android:layout_below="@id/character_appearances_header"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:paddingBottom="5dp"/>
+
+            <TextView
+                android:id="@+id/character_card_conditions_header"
+                android:layout_below="@id/character_appearances_text"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:text="@string/character_card_conditions_header_string"
+                android:textSize="20sp"/>
+
+            <TextView
+                android:id="@+id/character_card_conditions_text"
+                android:layout_below="@id/character_card_conditions_header"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:paddingBottom="5dp"/>
+
+            <TextView
+                android:id="@+id/character_first_found_header"
+                android:layout_below="@id/character_card_conditions_text"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:text="@string/character_first_found_header_string"
+                android:textSize="20sp"/>
+
+            <TextView
+                android:id="@+id/character_first_found_text"
+                android:layout_below="@id/character_first_found_header"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"/>
+
+        </RelativeLayout>
+
+    </ScrollView>
+
+    <TextView
+        android:background="@color/colorPrimary"
+        android:gravity="center_horizontal"
+        android:id="@+id/character_details_marvel_banner"
+        android:layout_alignParentBottom="true"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:text="@string/character_details_marvel_banner_string"/>
+
+</RelativeLayout>

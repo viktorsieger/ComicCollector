@@ -8,8 +8,14 @@ import android.arch.persistence.room.PrimaryKey;
 
 import java.util.Date;
 
-import se.umu.visi0009.comiccollector.enums.AchievementDifficulty;
+import se.umu.visi0009.comiccollector.other.enums.AchievementDifficulty;
 
+/**
+ * Defines the 'achievements' table in the database.
+ *
+ * @author Viktor Sieger
+ * @version 1.0
+ */
 @Entity(tableName = "achievements",
         foreignKeys = @ForeignKey(entity = Player.class,
                                   parentColumns = "id",
@@ -17,6 +23,9 @@ import se.umu.visi0009.comiccollector.enums.AchievementDifficulty;
                                   onDelete = ForeignKey.CASCADE,
                                   onUpdate = ForeignKey.CASCADE))
 public class Achievement {
+
+    @Ignore
+    public static final Date DATE_INCOMPLETE = new Date(0L);
 
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "id")

@@ -10,6 +10,12 @@ import android.graphics.BitmapFactory;
 import java.util.ArrayList;
 import java.util.Date;
 
+/**
+ * Defines the 'characters' table in the database.
+ *
+ * @author Viktor Sieger
+ * @version 1.0
+ */
 @Entity(tableName = "characters")
 public class Character {
 

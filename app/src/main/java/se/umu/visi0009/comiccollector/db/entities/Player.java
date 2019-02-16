@@ -4,6 +4,12 @@ import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.PrimaryKey;
 
+/**
+ * Defines the 'players' table in the database.
+ *
+ * @author Viktor Sieger
+ * @version 1.0
+ */
 @Entity(tableName = "players")
 public class Player {
 

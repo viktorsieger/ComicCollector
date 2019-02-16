@@ -6,7 +6,7 @@
     <item
         android:visible="false"
         android:icon="@drawable/ic_toolbar_refresh"
-        android:id="@+id/toolbar_new_geofences"
-        android:title="@string/toolbar_new_geofences"
+        android:id="@+id/toolbar_map_new_geofences"
+        android:title="@string/toolbar_map_new_geofences_string"
         app:showAsAction="ifRoom" />
 </menu>

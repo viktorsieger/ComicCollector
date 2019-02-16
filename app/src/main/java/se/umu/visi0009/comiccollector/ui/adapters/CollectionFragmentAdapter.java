@@ -1,4 +1,4 @@
-package se.umu.visi0009.comiccollector.other;
+package se.umu.visi0009.comiccollector.ui.adapters;
 
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
@@ -15,30 +15,53 @@ import java.util.List;
 
 import se.umu.visi0009.comiccollector.R;
 import se.umu.visi0009.comiccollector.db.entities.Character;
-import se.umu.visi0009.comiccollector.enums.CollectionSortTypes;
+import se.umu.visi0009.comiccollector.ui.click_listener_interfaces.OnCharacterClickListener;
+import se.umu.visi0009.comiccollector.other.enums.SortTypes;
 
-public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder> {
+/**
+ * Class that handles the list in CollectionFragment.
+ *
+ * @author Viktor Sieger
+ * @version 1.0
+ */
+public class CollectionFragmentAdapter extends RecyclerView.Adapter<CollectionFragmentAdapter.ViewHolder> {
 
     private final OnCharacterClickListener mOnCharacterClickListener;
 
-    private CollectionSortTypes mSortType = CollectionSortTypes.ASCENDING;
+    private SortTypes mSortType = SortTypes.ASCENDING;
     private List<Character> mCharacters;
     private List<Character> mCharactersFilteredSorted;
     private String mFilterPhrase = "";
 
+    /**
+     * Class that handles the information in each list item.
+     */
     public static class ViewHolder extends RecyclerView.ViewHolder {
 
         private final ImageView mImageView;
         private final TextView mTextView;
 
+        /**
+         * Constructor for the class. Initializes view attributes.
+         *
+         * @param v     The list item's view.
+         */
         public ViewHolder(View v) {
             super(v);
 
-            mImageView = v.findViewById(R.id.item_image);
-            mTextView = v.findViewById(R.id.item_text);
+            mImageView = v.findViewById(R.id.collection_recycler_item_image);
+            mTextView = v.findViewById(R.id.collection_recycler_item_name);
         }
 
-        public void bind(final Character character, final OnCharacterClickListener listener) {
+        /**
+         * Binds data to the view and sets an onclicklistener.
+         *
+         * @param character                     Character containing the data to
+         *                                      be displayed.
+         * @param onCharacterClickListener      Clicklistener that is used when
+         *                                      the user clicks the item.
+         */
+        public void bind(final Character character, final OnCharacterClickListener onCharacterClickListener) {
 
             mImageView.setImageBitmap(character.getCharacterImage());
             mTextView.setText(character.getName());
@@ -46,23 +69,47 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    listener.onCharacterClick(character);
+                    onCharacterClickListener.onCharacterClick(character);
                 }
             });
         }
     }
 
-    public CustomAdapter(OnCharacterClickListener onCharacterClickListener) {
+    /**
+     * Constructor for the class.
+     *
+     * @param onCharacterClickListener      Clicklistener that is used when an
+     *                                      item is clicked.
+     */
+    public CollectionFragmentAdapter(OnCharacterClickListener onCharacterClickListener) {
         mOnCharacterClickListener = onCharacterClickListener;
     }
 
+    /**
+     * Creates new views by inflating a layout from XML.
+     *
+     * @param viewGroup     The ViewGroup into which the new View will be added
+     *                      after it is bound to an adapter position.
+     * @param i             The view type of the new View.
+     * @return              A new ViewHolder that holds a View of the given view
+     *                      type.
+     */
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
-        View v = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.recycler_item, viewGroup, false);
+        View v = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.recycler_item_collection, viewGroup, false);
         return new ViewHolder(v);
     }
 
+    /**
+     * Populates data into an item.
+     *
+     * @param viewHolder        The ViewHolder which should be updated to
+     *                          represent the contents of the item at the given
+     *                          position in the data set.
+     * @param i                 The position of the item within the adapter's
+     *                          data set.
+     */
     @Override
     public void onBindViewHolder(@NonNull ViewHolder viewHolder, int i) {
         if(mCharactersFilteredSorted != null) {
@@ -70,28 +117,50 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder
         }
     }
 
+    /**
+     * Returns the total number of items in the data set held by the adapter.
+     *
+     * @return      The total number of items in this adapter.
+     */
     @Override
     public int getItemCount() {
         return mCharactersFilteredSorted == null ? 0 : mCharactersFilteredSorted.size();
     }
 
+    /**
+     * Changes the sorting order of the list items.
+     */
     public void toogleSortType() {
-        if(mSortType == CollectionSortTypes.ASCENDING) {
-            mSortType = CollectionSortTypes.DESCENDING;
+        if(mSortType == SortTypes.ASCENDING) {
+            mSortType = SortTypes.DESCENDING;
         }
         else {
-            mSortType = CollectionSortTypes.ASCENDING;
+            mSortType = SortTypes.ASCENDING;
         }
     }
 
+    /**
+     * Sets the phrase to filter the list items by.
+     *
+     * @param filterPhrase      The phrase to filter the list items by.
+     */
     public void setFilterPhrase(String filterPhrase) {
         mFilterPhrase = filterPhrase;
     }
 
+    /**
+     * Sets the adapter's data set.
+     *
+     * @param characters    The data set to be used.
+     */
     public void setCharacters(List<Character> characters) {
         mCharacters = characters;
     }
 
+    /**
+     * Filters the data set by the current filter phrase and sorts the remaining
+     * data by the current sort type.
+     */
     public void updateSortedFilteredCharacters() {
 
         List<Character> tempList;

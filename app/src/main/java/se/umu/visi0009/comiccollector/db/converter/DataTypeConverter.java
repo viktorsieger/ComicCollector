@@ -9,9 +9,16 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Date;
 
-import se.umu.visi0009.comiccollector.enums.AchievementDifficulty;
-import se.umu.visi0009.comiccollector.enums.CardCondition;
+import se.umu.visi0009.comiccollector.other.enums.AchievementDifficulty;
+import se.umu.visi0009.comiccollector.other.enums.CardCondition;
 
+/**
+ * Contains type converters used to convert custom objects into database known
+ * objects, or vice versa.
+ *
+ * @author Viktor Sieger
+ * @version 1.0
+ */
 public class DataTypeConverter {
 
     @TypeConverter

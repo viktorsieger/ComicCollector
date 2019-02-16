@@ -3,6 +3,12 @@ package se.umu.visi0009.comiccollector.other;
 import java.io.Serializable;
 import java.util.Date;
 
+/**
+ * Used to keep track of available characters in Marvel's API.
+ *
+ * @author Viktor Sieger
+ * @version 1.0
+ */
 public class CharacterCountHelper implements Serializable {
 
     private Date lastUpdated;

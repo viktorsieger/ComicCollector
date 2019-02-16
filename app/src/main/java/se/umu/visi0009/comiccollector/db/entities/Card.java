@@ -8,8 +8,14 @@ import android.arch.persistence.room.PrimaryKey;
 
 import java.util.Date;
 
-import se.umu.visi0009.comiccollector.enums.CardCondition;
+import se.umu.visi0009.comiccollector.other.enums.CardCondition;
 
+/**
+ * Defines the 'cards' table in the database.
+ *
+ * @author Viktor Sieger
+ * @version 1.0
+ */
 @Entity(tableName = "cards",
         foreignKeys = {@ForeignKey(entity = Player.class,
                                    parentColumns = "id",

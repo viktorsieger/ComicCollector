@@ -1,4 +1,4 @@
-package se.umu.visi0009.comiccollector.fragments;
+package se.umu.visi0009.comiccollector.ui.fragments;
 
 import android.Manifest;
 import android.app.Activity;
@@ -58,10 +58,17 @@ import se.umu.visi0009.comiccollector.R;
 import se.umu.visi0009.comiccollector.other.GeofenceInfo;
 import se.umu.visi0009.comiccollector.other.GeofenceTransitionsIntentService;
 
+/**
+ * Fragment that displays a map.
+ *
+ * @author Viktor Sieger
+ * @version 1.0
+ */
 public class MapFragment extends Fragment implements OnMapReadyCallback {
 
     public static final String ACTION_GEOFENCE = "geofenceIntentFilter";
     public static final String KEY_GEOFENCE_REQUEST_ID = "geofenceRequestId";
+    private static final String TAG = "MapFragment";
 
     private static final double GEOFENCES_MAX_DISTANCE_FROM_USER = 10000;
     private static final float GEOFENCE_RADIUS = 100;
@@ -70,7 +77,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private static final int NUMBER_OF_GEOFENCES = 10;
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private static final int REQUEST_CHECK_SETTINGS = 2;
-    private static final LatLng FAILURE_LOCATION = new LatLng(62.3875, 16.325556); // Sveriges mittpunkt
+    private static final LatLng FAILURE_LOCATION = new LatLng(62.3875, 16.325556); // Center of Sweden
     private static final String FILENAME_GEOFENCE_INFOS = "currentGeofenceInfos";
     private static final String KEY_LOCATION_PERMISSION_GRANTED = "mLocationPermissionGranted";
     private static final String KEY_LOCATION_SETTINGS_ENABLED = "mLocationSettingEnabled";
@@ -97,6 +104,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private Set<Marker> mMarkers = new HashSet<>();
     private Toolbar mToolbar;
 
+    /**
+     * BroadcastReceiver that receives broadcasts when the user has found a
+     * card. Replaces the triggered geofence with a new one.
+     */
     private BroadcastReceiver mGeofenceReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -109,20 +120,34 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 addGeofenceInfo(mLastKnownLocation);
                 startGeofences();
 
-                Toast.makeText(mContext, "You found a card!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(mContext, R.string.card_found_string, Toast.LENGTH_SHORT).show();
             }
             else {
-                Log.d("TEST", "Error: Key not in hashmap");
+                Log.e(TAG, "Error: Key not in hashmap");
             }
         }
     };
 
+    /**
+     * Called when a fragment is first attached to its context. Saves a
+     * reference to the context.
+     *
+     * @param context   The context of the fragment.
+     */
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         mContext = context;
     }
 
+    /**
+     * Called to do initial creation of a fragment. Sets up a
+     * FusedLocationProviderClient and a GeofencingClient, registers the
+     * broadcast receiver and initializes the LocationCallback.
+     *
+     * @param savedInstanceState    If the fragment is being re-created from a
+     *                              previous saved state, this is the state.
+     */
     @Override
     public void onCreate(Bundle savedInstanceState) {
 
@@ -142,27 +167,49 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                     onLocationChanged(locationResult.getLastLocation());
                 }
                 else {
-                    Toast.makeText(mContext, R.string.error_location, Toast.LENGTH_SHORT).show(); // REMOVE?
-                    mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(FAILURE_LOCATION, FAILURE_ZOOM)); // REMOVE?
+                    Toast.makeText(mContext, R.string.error_location_failed, Toast.LENGTH_SHORT).show();
+                    mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(FAILURE_LOCATION, FAILURE_ZOOM));
                 }
             }
         };
     }
 
+    /**
+     * Called to have the fragment instantiate its user interface view. Inflates
+     * the XML layout. Also sets the callback object for the GoogleMap.
+     *
+     * @param inflater              LayoutInflater object that can be used to
+     *                              inflate any views in the fragment.
+     * @param container             If non-null, this is the parent view that
+     *                              the fragment's UI should be attached to. The
+     *                              fragment should not add the view itself, but
+     *                              this can be used to generate the
+     *                              LayoutParams of the view.
+     * @param savedInstanceState    If non-null, this fragment is being
+     *                              re-constructed from a previous saved state
+     *                              as given here.
+     * @return                      Return the View for the fragment's UI.
+     */
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_map, container, false);
-        ((SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map)).getMapAsync(this);
+        ((SupportMapFragment)getChildFragmentManager().findFragmentById(R.id.map)).getMapAsync(this);
         return rootView;
     }
 
+    /**
+     * Called when the fragment's activity has been created and this fragment's
+     * view hierarchy is instantiated. Finds references to the activity and the
+     * app bar. If geofences are stored locally the are also retrieved.
+     *
+     * @param savedInstanceState    If the fragment is being re-created from a
+     *                              previous saved state, this is the state.
+     */
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         mActivity = getActivity();
         mToolbar = mActivity.findViewById(R.id.toolbar);
-
-        mToolbar.setTitle("ComicCollector");
 
         if(((ComicCollectorApp)mActivity.getApplication()).isFileInPersistentStorage(FILENAME_GEOFENCE_INFOS)) {
             mGeofenceInfos = (HashMap<String, GeofenceInfo>)((ComicCollectorApp)mActivity.getApplication()).readObjectFromPersistentStorage(FILENAME_GEOFENCE_INFOS);
@@ -173,11 +220,18 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 
+    /**
+     * Called when the fragment is visible to the user and actively running.
+     * Sets the app bar's title and inflates the app bar's menu. Also determines
+     * if the location permissions dialog or the location settings dialog need
+     * to be displayed to the user.
+     */
     @Override
     public void onResume() {
 
         super.onResume();
 
+        mToolbar.setTitle(R.string.toolbar_title_map);
         mToolbar.inflateMenu(R.menu.toolbar_mapfragment);
 
         if(mLocationPermissionGranted) {
@@ -200,6 +254,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 
+    /**
+     * Called when the Fragment is no longer resumed. Stops location updates,
+     * removes geofences, stores geofences locally and clears the app bar's
+     * menu.
+     */
     @Override
     public void onPause() {
 
@@ -220,18 +279,32 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         mToolbarActionItemVisible = false;
     }
 
+    /**
+     * Called when the fragment is no longer in use. Unregisters the broadcast
+     * receiver for geofencing broadcasts.
+     */
     @Override
     public void onDestroy() {
         mLocalBroadcastManager.unregisterReceiver(mGeofenceReceiver);
         super.onDestroy();
     }
 
+    /**
+     * Called when the map is ready to be used. Saves a reference to the
+     * GoogleMap and updates the GoogleMap's UI.
+     *
+     * @param googleMap     The fragment's GoogleMap.
+     */
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mGoogleMap = googleMap;
         updateLocationUI();
     }
 
+    /**
+     * Checks if location permission is granted. If the permission is denied the
+     * user is prompted to grant the permission.
+     */
     private void checkLocationPermission() {
         if(ContextCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             mLocationPermissionGranted = true;
@@ -240,7 +313,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         else {
             if(shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
-                builder.setMessage("Location permission is needed to pinpoint your position. Your position is used to set the gaming environment.").setCancelable(false).setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                builder.setMessage(R.string.alert_location_message_string)
+                       .setCancelable(false)
+                       .setPositiveButton(R.string.alert_location_positive_button_string, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         requestPermissions(new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
@@ -253,6 +328,17 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 
+    /**
+     * Callback for the result from requesting permissions. Handles the result.
+     *
+     * @param requestCode       The request code passed in
+     *                          requestPermissions(android.app.Activity,
+     *                          String[], int).
+     * @param permissions       The requested permissions. Never null.
+     * @param grantResults      The grant results for the corresponding
+     *                          permissions which is either PERMISSION_GRANTED
+     *                          or PERMISSION_DENIED. Never null.
+     */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
         if(grantResults.length > 0) {
@@ -269,11 +355,19 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 
+    /**
+     * Called when location permissions is granted. Creates a location request
+     * and checks if the location setting is enabled.
+     */
     private void locationPermissionGrantedRoutine() {
         createLocationRequest();
         checkLocationSetting();
     }
 
+    /**
+     * Checks if the location setting is enabled. If the setting is disabled the
+     * user is prompted to enabled the setting.
+     */
     private void checkLocationSetting() {
         LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder();
         builder.addLocationRequest(mLocationRequest);
@@ -293,13 +387,26 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                         ResolvableApiException rae = (ResolvableApiException) e;
                         rae.startResolutionForResult(mActivity, REQUEST_CHECK_SETTINGS);
                     } catch (IntentSender.SendIntentException sie) {
-                        Log.e("Exception %s", sie.getMessage());
+                        Log.e(TAG, sie.getMessage());
                     }
                 }
             }
         });
     }
 
+    /**
+     * Callback for the result from requesting location setting. Handles the
+     * result.
+     *
+     * @param requestCode   The integer request code originally supplied to
+     *                      startResolutionForResult(), allowing you to identify
+     *                      who this result came from.
+     * @param resultCode    The integer result code returned by the child
+     *                      activity through its setResult().
+     * @param data          An Intent, which can return result data to the
+     *                      caller (various data can be attached to Intent
+     *                      "extras").
+     */
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -320,36 +427,54 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 
+    /**
+     * Called when location permission is granted and location updates are
+     * enabled. Updates the GoogleMap's UI, creates a location request and
+     * starts regular location updates.
+     */
     private void run() {
         updateLocationUI();
         createLocationRequest();
         startLocationUpdates();
     }
 
+    /**
+     * Starts regular location updates.
+     */
     private void startLocationUpdates() {
         try {
             mFusedLocationProviderClient.requestLocationUpdates(mLocationRequest, mLocationCallback, null);
         }
         catch(SecurityException se) {
-            Log.e("Exception %s", se.getMessage());
+            Log.e(TAG, se.getMessage());
         }
     }
 
+    /**
+     * Stops location updates.
+     */
     private void stopLocationUpdates() {
         mFusedLocationProviderClient.removeLocationUpdates(mLocationCallback);
     }
 
+    /**
+     * Called when the device receives a location update. Inflates the app bar's
+     * menu if the menu isn't already inflated, adds geofences if there aren't
+     * any and moves the map to the current location.
+     *
+     * @param location
+     */
     private void onLocationChanged(Location location) {
 
         mLastKnownLocation = location;
 
         if(!mToolbarActionItemVisible) {
             // If action item isn't in menu
-            if(mToolbar.getMenu().findItem(R.id.toolbar_new_geofences) == null) {
+            if(mToolbar.getMenu().findItem(R.id.toolbar_map_new_geofences) == null) {
                 mToolbar.inflateMenu(R.menu.toolbar_mapfragment);
             }
 
-            mToolbar.getMenu().findItem(R.id.toolbar_new_geofences).setVisible(true);
+            mToolbar.getMenu().findItem(R.id.toolbar_map_new_geofences).setVisible(true);
             mToolbarActionItemVisible = true;
         }
 
@@ -374,6 +499,14 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 
+    /**
+     * Constructs and adds a geofence. The new geofence is constructed to not
+     * overlap with any of the other geofences and is constructed to be
+     * sufficiently far away from the input location.
+     *
+     * @param userLocation  The base location to construct the new geofence
+     *                      around.
+     */
     private void addGeofenceInfo(Location userLocation) {
 
         boolean isNewLocationFound;
@@ -421,6 +554,16 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         mGeofenceInfos.put(key, newGeofenceInfo);
     }
 
+    /**
+     * Generates a location within a certain distance from the input location.
+     *
+     * @param originLocation    The base location to construct the new geofence
+     *                          around.
+     * @param radiusInMeters    The max distance in meters the new location will
+     *                          be from the input location.
+     * @return                  A randomly generated location that is within the
+     *                          input radius from the origin location.
+     */
     private Location generateLocation(Location originLocation, double radiusInMeters) {
 
         Random rand;
@@ -450,6 +593,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         return foundLocation;
     }
 
+    /**
+     * Returns an unique key that is not in the current geofences.
+     *
+     * @return      A string representing a unique key.
+     */
     private String findUniqueKey() {
 
         Integer i = 1;
@@ -461,6 +609,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         return i.toString();
     }
 
+    /**
+     * Convenience method that start monitoring geofences and adds markers to
+     * the map.
+     */
     private void startGeofences() {
         if(!mGeofenceInfos.isEmpty()) {
             addGeofences();
@@ -468,11 +620,18 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 
+    /**
+     * Convenience method that stops monitoring geofences and removes markers
+     * from the map.
+     */
     private void stopGeofences() {
         removeGeofences();
         removeMarkers();
     }
 
+    /**
+     * Adds markers for the geofences on the map.
+     */
     private void addMarkers() {
 
         Marker marker;
@@ -487,48 +646,51 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 
+    /**
+     * Removes markers from the map.
+     */
     private void removeMarkers() {
         for(Marker marker : mMarkers) {
             marker.remove();
         }
     }
 
+    /**
+     * Starts monitoring geofences.
+     */
     private void addGeofences() {
         try {
             mGeofencingClient.addGeofences(getGeofencingRequest(), getGeofencePendingIntent())
-                    /*.addOnSuccessListener(mActivity, new OnSuccessListener<Void>() {
-                        @Override
-                        public void onSuccess(Void aVoid) {
-
-                        }
-                    })*/
                     .addOnFailureListener(mActivity, new OnFailureListener() {
                         @Override
                         public void onFailure(@NonNull Exception e) {
-                            Log.d("TEST", "Error: Could not add geofences");
+                            Log.e(TAG, "Error: Could not add geofences");
                         }
                     });
         } catch(SecurityException se) {
-            se.printStackTrace();
+            Log.e(TAG, se.getMessage());
         }
     }
 
+    /**
+     * Stops monitoring geofences.
+     */
     private void removeGeofences() {
         mGeofencingClient.removeGeofences(getGeofencePendingIntent())
-                /*.addOnSuccessListener(mActivity, new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
-
-                    }
-                })*/
                 .addOnFailureListener(mActivity, new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        Log.d("TEST", "Error: Could not remove geofences");
+                        Log.e(TAG, "Error: Could not remove geofences");
                     }
                 });
     }
 
+    /**
+     * Returns a GeofencingRequest. The request specifies what geofences to
+     * monitor and how they are triggered.
+     *
+     * @return      A GeofencingRequest with information about geofences.
+     */
     private GeofencingRequest getGeofencingRequest() {
         GeofencingRequest.Builder builder = new GeofencingRequest.Builder();
         builder.setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER);
@@ -540,6 +702,13 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         return builder.build();
     }
 
+    /**
+     * Returns a PendingIntent specifying the IntentService to handle the
+     * geofence transitions.
+     *
+     * @return      A PendingIntent specifying the IntentService to handle the
+     *              geofence transitions.
+     */
     private PendingIntent getGeofencePendingIntent() {
 
         Intent intent;
@@ -555,6 +724,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         return mGeofencePendingIntent;
     }
 
+    /**
+     * Sets up the location request. Defines update intervals.
+     */
     protected void createLocationRequest() {
         mLocationRequest = new LocationRequest();
         mLocationRequest.setInterval(5000);
@@ -562,17 +734,29 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
     }
 
+    /**
+     * Called when location permissions is denied. Displays a toast to the user
+     * and updates the GoogleMap's UI.
+     */
     private void locationPermissionDeniedRoutine() {
-        Toast.makeText(mContext, "Location permission is needed to run the game", Toast.LENGTH_SHORT).show();
+        Toast.makeText(mContext, R.string.error_location_permission, Toast.LENGTH_SHORT).show();
         updateLocationUI();
     }
 
+    /**
+     * Called when location setting is disabled. Displays a toast to the user
+     * and updates the GoogleMap's UI.
+     */
     private void locationSettingDisabledRoutine() {
-        Toast.makeText(mContext, "Location setting need to be enabled to run the game", Toast.LENGTH_SHORT).show();
+        Toast.makeText(mContext, R.string.error_location_setting, Toast.LENGTH_SHORT).show();
         updateLocationUI();
     }
 
+    /**
+     * Updates the GoogleMap's UI.
+     */
     private void updateLocationUI() {
+
         if(mGoogleMap == null) {
             return;
         }
@@ -587,10 +771,16 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 mGoogleMap.getUiSettings().setMyLocationButtonEnabled(false);
             }
         } catch(SecurityException se) {
-            Log.e("Exception %s", se.getMessage());
+            Log.e(TAG, se.getMessage());
         }
     }
 
+    /**
+     * Called to ask the fragment to save its current dynamic state, so it can
+     * later be reconstructed in a new instance of its process is restarted.
+     *
+     * @param outState      Bundle in which to place your saved state.
+     */
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         outState.putBoolean(KEY_LOCATION_PERMISSION_GRANTED, mLocationPermissionGranted);
@@ -598,6 +788,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         super.onSaveInstanceState(outState);
     }
 
+    /**
+     * Called to restore state from data in bundle.
+     *
+     * @param savedInstanceState    Bundle containing state data.
+     */
     private void updateValuesFromBundle(Bundle savedInstanceState) {
 
         if(savedInstanceState == null) {
@@ -613,10 +808,18 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 
+    /**
+     * Handles interaction with the app bar's menu. If the 'new geofences' item
+     * was selected the current geofences are removed and new ones are created.
+     *
+     * @param menuItem      The menu item that was selected.
+     * @return              Return false to allow normal menu processing to
+     *                      proceed, true to consume it here.
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem menuItem) {
 
-        if(menuItem.getItemId() == R.id.toolbar_new_geofences) {
+        if(menuItem.getItemId() == R.id.toolbar_map_new_geofences) {
 
             stopGeofences();
 

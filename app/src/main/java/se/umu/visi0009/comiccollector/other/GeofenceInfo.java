@@ -4,6 +4,12 @@ import com.google.android.gms.location.Geofence;
 
 import java.io.Serializable;
 
+/**
+ * Class that holds information about a Geofence.
+ *
+ * @author Viktor Sieger
+ * @version 1.0
+ */
 public class GeofenceInfo implements Serializable {
 
     private final String requestId;
@@ -22,7 +28,7 @@ public class GeofenceInfo implements Serializable {
         this.transitionTypes = transitionTypes;
     }
 
-    public String getRequestId() {
+    private String getRequestId() {
         return requestId;
     }
 
@@ -34,15 +40,15 @@ public class GeofenceInfo implements Serializable {
         return longitude;
     }
 
-    public float getRadius() {
+    private float getRadius() {
         return radius;
     }
 
-    public long getDurationMillis() {
+    private long getDurationMillis() {
         return durationMillis;
     }
 
-    public int getTransitionTypes() {
+    private int getTransitionTypes() {
         return transitionTypes;
     }
 
