@@ -40,7 +40,7 @@
     <string name="achievement_difficulty_header_string">Difficulty</string>
     <string name="achievement_status_header_string">Status</string>
 
-    <string name="about_description">Created by Viktor Sieger\n\nVersion 1.0</string>
+    <string name="about_description">Created by Viktor Sieger\n\nVersion 1.1</string>
 
     <string name="error_location_permission">Location permission is needed to run the game</string>
     <string name="error_location_setting">Location setting need to be enabled to run the game</string>
