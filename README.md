@@ -10,8 +10,4 @@ To run the game properly three keys are needed (not supplied in the project). Sp
 ```
 
 # Screenshots
-![Map view](screenshots/view_map.png?raw=true "Map view")
-![Collection view](screenshots/view_collection.png?raw=true "Collection view")
-![Character view](screenshots/view_character.png?raw=true "Character view")
-![Achievements view](screenshots/view_achievements.png?raw=true "Achievements view")
-![Achievement view](screenshots/view_achievement.png?raw=true "Achievement view")
+<img src="screenshots/view_map.png" alt="Map view" width="30%"> <img src="screenshots/view_collection.png" alt="Collection view" width="30%"> <img src="screenshots/view_character.png" alt="Character view" width="30%"> <img src="screenshots/view_achievements.png" alt="Achievements view" width="30%"> <img src="screenshots/view_achievement.png" alt="Achievement view" width="30%">
