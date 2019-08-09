@@ -9,5 +9,5 @@ To run the game properly three keys are needed (not supplied in the project). Sp
 <string name="googleMapsUnrestrictedKey">YourKeyHere</string>
 ```
 
-# Screenshots
-<img src="screenshots/view_map.png" alt="Map view" width="30%"> <img src="screenshots/view_collection.png" alt="Collection view" width="30%"> <img src="screenshots/view_character.png" alt="Character view" width="30%"> <img src="screenshots/view_achievements.png" alt="Achievements view" width="30%"> <img src="screenshots/view_achievement.png" alt="Achievement view" width="30%">
+## Screenshots
+<img src="screenshots/view_map.png" alt="Map view" title="Map view" width="30%"> <img src="screenshots/view_collection.png" alt="Collection view" title="Collection view" width="30%"> <img src="screenshots/view_character.png" alt="Character view" title="Character view" width="30%"> <img src="screenshots/view_achievements.png" alt="Achievements view" title="Achievements view" width="30%"> <img src="screenshots/view_achievement.png" alt="Achievement view" title="Achievement view" width="30%">
