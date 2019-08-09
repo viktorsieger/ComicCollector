@@ -8,3 +8,10 @@ To run the game properly three keys are needed (not supplied in the project). Sp
 <string name="marvelPrivateKey">YourKeyHere</string>
 <string name="googleMapsUnrestrictedKey">YourKeyHere</string>
 ```
+
+# Screenshots
+![Map view](screenshots/view_map.png?raw=true "Map view")
+![Collection view](screenshots/view_collection.png?raw=true "Collection view")
+![Character view](screenshots/view_character.png?raw=true "Character view")
+![Achievements view](screenshots/view_achievements.png?raw=true "Achievements view")
+![Achievement view](screenshots/view_achievement.png?raw=true "Achievement view")
